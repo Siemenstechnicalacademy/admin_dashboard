@@ -38,9 +38,13 @@
         .tab-btn { background: #34495e; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px 5px 0 0; font-weight: bold; margin-right: 5px;}
         .tab-btn.active { background: #f4f7f6; color: var(--primary); border: 1px solid #ddd; border-bottom: none; }
         
-        /* Checkbox styling */
         .q-checkbox { position: absolute; top: 20px; right: 20px; transform: scale(1.5); cursor: pointer; }
         .selection-counter { background: var(--btn-green); color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; margin-left: 10px; }
+        
+        /* Added for Review Status */
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; display: inline-block; }
+        .correct { background: #d4edda; color: #155724; }
+        .incorrect { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -86,7 +90,7 @@
         
         <div id="designer-section" style="background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h1 style="display: flex; align-items: center;">
+                <h1 id="designer-title" style="display: flex; align-items: center;">
                     Question Explorer 
                     <span id="count-badge" class="selection-counter" style="display:none;">0 Selected</span>
                 </h1>
@@ -124,7 +128,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        let selectedQuestions = []; // Stores the objects of selected questions
+        let selectedQuestions = []; 
 
         const dbMap = {
             "2.1 Algebra": "algebra",
@@ -141,8 +145,8 @@
             document.getElementById('btn-results').classList.toggle('active', tab === 'results');
         }
 
-        // 1. Load Questions with Selectable Checkboxes
         function viewCurrentTopic() {
+            document.getElementById('designer-title').innerText = "Question Explorer";
             const selectedTopic = document.getElementById('mainTopic').value;
             const displayArea = document.getElementById('questionDisplay');
             
@@ -174,11 +178,9 @@
             });
         }
 
-        // 2. Track selections
         function toggleSelection(questionObj, cardId) {
             const card = document.getElementById(cardId);
             const index = selectedQuestions.findIndex(q => q.q === questionObj.q);
-
             if (index > -1) {
                 selectedQuestions.splice(index, 1);
                 card.classList.remove('selected');
@@ -186,22 +188,17 @@
                 selectedQuestions.push(questionObj);
                 card.classList.add('selected');
             }
-
             const badge = document.getElementById('count-badge');
             badge.style.display = selectedQuestions.length > 0 ? 'inline' : 'none';
             badge.innerText = `${selectedQuestions.length} Selected`;
         }
 
-        // 3. Generate the Exam (Saves selection to a special Firebase path)
         function generateFromBank() {
             if (selectedQuestions.length === 0) {
                 alert("Please select at least one question first!");
                 return;
             }
-
             const session = document.getElementById('examSession').value;
-            
-            // We save the selected set to 'active_exam' so the student page knows what to load
             database.ref('active_exam').set({
                 questions: selectedQuestions,
                 generatedAt: new Date().toLocaleString(),
@@ -211,12 +208,58 @@
             });
         }
 
-        // --- Rest of your existing Results & Sidebar logic ---
+        // --- FIXED VIEW LOGIC ---
+        function viewStudentDetails(id) {
+            const displayArea = document.getElementById('questionDisplay');
+            document.getElementById('designer-title').innerText = "Student Response Review";
+            displayArea.innerHTML = "<em>Loading responses...</em>";
+
+            database.ref('exam_results/' + id).once('value', (snapshot) => {
+                const student = snapshot.val();
+                if (!student || !student.details) {
+                    displayArea.innerHTML = "<p style='color:red;'>No detailed question data found for this student.</p>";
+                    switchTab('designer');
+                    return;
+                }
+
+                // Handle both Array and Object formats from Firebase
+                const details = Array.isArray(student.details) ? student.details : Object.values(student.details);
+
+                let html = `<div style="display:flex; justify-content:space-between; align-items:center;">
+                                <h2>Review: ${student.name}</h2>
+                                <button class="generate-btn" style="background:#888; margin:0;" onclick="viewCurrentTopic()">BACK TO EXPLORER</button>
+                            </div>
+                            <p style="margin: 10px 0;">Final Score: <strong>${student.score}</strong> | Submitted: ${student.submittedAt || 'N/A'}</p>
+                            <hr style="margin:20px 0;">`;
+
+                details.forEach((item, index) => {
+                    const isCorrect = item.status === true;
+                    const cardColor = isCorrect ? "var(--btn-green)" : "var(--btn-red)";
+                    
+                    html += `
+                        <div class="q-card" style="border-left: 6px solid ${cardColor}">
+                            <div class="status-badge ${isCorrect ? 'correct' : 'incorrect'}">
+                                ${isCorrect ? '✔ Correct' : '✖ Incorrect'}
+                            </div>
+                            <p><strong>Q${index + 1}:</strong> ${item.question}</p>
+                            <p style="margin-top:10px;">Student Chose: <span style="font-weight:bold; color:${isCorrect ? '#155724' : '#721c24'}">${item.userSelection || 'No Answer'}</span></p>
+                            ${!isCorrect ? `<p style="color:#27ae60; font-size:13px;">Correct Answer: <strong>${item.correctAnswer}</strong></p>` : ''}
+                        </div>`;
+                });
+
+                displayArea.innerHTML = html;
+                switchTab('designer'); // Automatically jump to the designer view
+            });
+        }
+
         database.ref('exam_results').on('value', (snapshot) => {
             const data = snapshot.val();
             const listDiv = document.getElementById('studentList');
             listDiv.innerHTML = "";
-            if (!data) return;
+            if (!data) {
+                listDiv.innerHTML = "<p style='color:#888;'>No submissions yet...</p>";
+                return;
+            }
             for (let id in data) {
                 const student = data[id];
                 listDiv.innerHTML += `
@@ -224,7 +267,7 @@
                         <div><strong>${student.name}</strong></div>
                         <div style="text-align:right;">
                             <span style="font-weight:bold; color:var(--accent);">${student.score}/25</span><br>
-                            <button class="generate-btn" style="padding:5px 10px; font-size:11px;" onclick="viewStudentDetails('${id}')">VIEW</button>
+                            <button class="generate-btn" style="padding:5px 10px; font-size:11px;" onclick="viewStudentDetails('${id}')">VIEW DETAILS</button>
                         </div>
                     </div>`;
             }
