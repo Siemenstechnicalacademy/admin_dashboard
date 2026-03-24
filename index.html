@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STA Admin | Full Question Bank Engine</title>
+    <style>
+        :root {
+            --primary: #1a252f;
+            --accent: #00828c; /* Siemens Teal */
+            --sidebar-bg: #2c3e50;
+            --btn-green: #27ae60;
+            --btn-red: #e74c3c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { display: flex; height: 100vh; background-color: #f4f7f6; overflow: hidden; }
+
+        .sidebar {
+            width: 320px; background-color: var(--sidebar-bg); color: white;
+            padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
+            border-right: 1px solid #3e4f5f;
+        }
+        .logo { font-size: 18px; font-weight: bold; color: #3498db; border-bottom: 1px solid #3e4f5f; padding-bottom: 10px; margin-bottom: 5px; }
+        label { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #bdc3c7; display: block; margin-bottom: 5px; }
+        select {
+            width: 100%; padding: 10px; border-radius: 5px; border: none;
+            background-color: #34495e; color: white; outline: none; font-size: 14px;
+        }
+        .generate-btn {
+            background-color: var(--btn-green); color: white; border: none;
+            padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer;
+            margin-top: 10px; transition: 0.3s;
+        }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .q-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid #3498db; position: relative; }
+        .q-card.selected { border-left: 6px solid var(--btn-green); background-color: #f0fff4; }
+        .tab-btn { background: #34495e; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px 5px 0 0; font-weight: bold; margin-right: 5px;}
+        .tab-btn.active { background: #f4f7f6; color: var(--primary); border: 1px solid #ddd; border-bottom: none; }
+        
+        /* Checkbox styling */
+        .q-checkbox { position: absolute; top: 20px; right: 20px; transform: scale(1.5); cursor: pointer; }
+        .selection-counter { background: var(--btn-green); color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; margin-left: 10px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">STA ADMIN DASHBOARD</div>
+
+        <div>
+            <label>Select Batch</label>
+            <select id="examSession">
+                <option value="61st EA">61st EA</option>
+                <option value="61st EB">61st EB</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Select Semester</label>
+            <select id="semester" onchange="updateMainTopics()">
+                <option value="">-- Select Semester --</option>
+                <option value="sem1">I SEMESTER</option>
+                <option value="sem2">II SEMESTER</option>
+                <option value="sem3">III SEMESTER</option>
+                <option value="sem4">IV SEMESTER</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Main Topic (Chapter)</label>
+            <select id="mainTopic">
+                <option value="">Select Semester First</option>
+            </select>
+        </div>
+
+        <button class="generate-btn" onclick="generateFromBank()">🚀 GENERATE SELECTED EXAM</button>
+        <p style="font-size: 11px; color: #bdc3c7; text-align: center;">Selected questions will be sent to the live exam rotation.</p>
+    </aside>
+
+    <main class="main-content">
+        <div style="display: flex;">
+            <button class="tab-btn active" id="btn-designer" onclick="switchTab('designer')">Examination Designer</button>
+            <button class="tab-btn" id="btn-results" onclick="switchTab('results')">Student Performance</button>
+        </div>
+        
+        <div id="designer-section" style="background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1 style="display: flex; align-items: center;">
+                    Question Explorer 
+                    <span id="count-badge" class="selection-counter" style="display:none;">0 Selected</span>
+                </h1>
+                <button class="generate-btn" style="background: var(--accent); margin: 0;" onclick="viewCurrentTopic()">LOAD QUESTIONS</button>
+            </div>
+            <hr style="margin: 20px 0; border: 0.5px solid #ddd;">
+            <div id="questionDisplay">
+                <p style="color: #888;">1. Select Topic in Sidebar<br>2. Click "Load Questions"<br>3. Check the boxes of questions you want in the exam.</p>
+            </div>
+        </div>
+
+        <div id="results-section" style="display: none; background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <h1>Live Student Results</h1>
+            <hr style="margin: 20px 0; border: 0.5px solid #ddd;">
+            <div id="studentList">
+                <p style="color: #888;">Waiting for data...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyApnWnlnrTFQw5hsHVvjnK0kvwqIh3Nh5E",
+            authDomain: "sta-question-bank.firebaseapp.com",
+            databaseURL: "https://sta-question-bank-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sta-question-bank",
+            storageBucket: "sta-question-bank.firebasestorage.app",
+            messagingSenderId: "632844417227",
+            appId: "1:632844417227:web:6b60831113d49c18fd834e"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let selectedQuestions = []; // Stores the objects of selected questions
+
+        const dbMap = {
+            "2.1 Algebra": "algebra",
+            "2.2 Mensuration": "mensuration",
+            "2.3 Volume and Weight": "volume",
+            "3.1 Algebra": "algebra",
+            "4.3 Volume and Weight": "volume"
+        };
+
+        function switchTab(tab) {
+            document.getElementById('designer-section').style.display = tab === 'designer' ? 'block' : 'none';
+            document.getElementById('results-section').style.display = tab === 'results' ? 'block' : 'none';
+            document.getElementById('btn-designer').classList.toggle('active', tab === 'designer');
+            document.getElementById('btn-results').classList.toggle('active', tab === 'results');
+        }
+
+        // 1. Load Questions with Selectable Checkboxes
+        function viewCurrentTopic() {
+            const selectedTopic = document.getElementById('mainTopic').value;
+            const displayArea = document.getElementById('questionDisplay');
+            
+            if (!selectedTopic || selectedTopic.includes("Select")) {
+                alert("Please select a Topic first!"); return;
+            }
+
+            const dbKey = dbMap[selectedTopic] || selectedTopic.toLowerCase();
+            displayArea.innerHTML = `<p><em>Loading from bank...</em></p>`;
+
+            database.ref('question_bank/' + dbKey).once('value', (snapshot) => {
+                const questions = snapshot.val();
+                if (!questions) {
+                    displayArea.innerHTML = `<p style="color:red;">No questions found for ${selectedTopic}</p>`;
+                    return;
+                }
+
+                let html = `<h3>Select Questions from: ${selectedTopic}</h3><br>`;
+                questions.forEach((item, index) => {
+                    html += `
+                        <div class="q-card" id="card-${index}">
+                            <input type="checkbox" class="q-checkbox" onchange='toggleSelection(${JSON.stringify(item)}, "card-${index}")'>
+                            <strong>Q:</strong> ${item.q}<br>
+                            <div style="margin: 8px 0; color: #666; font-size: 13px;">${item.options.join(" | ")}</div>
+                            <span style="color: var(--btn-green); font-weight: bold;">✔ ${item.answer}</span>
+                        </div>`;
+                });
+                displayArea.innerHTML = html;
+            });
+        }
+
+        // 2. Track selections
+        function toggleSelection(questionObj, cardId) {
+            const card = document.getElementById(cardId);
+            const index = selectedQuestions.findIndex(q => q.q === questionObj.q);
+
+            if (index > -1) {
+                selectedQuestions.splice(index, 1);
+                card.classList.remove('selected');
+            } else {
+                selectedQuestions.push(questionObj);
+                card.classList.add('selected');
+            }
+
+            const badge = document.getElementById('count-badge');
+            badge.style.display = selectedQuestions.length > 0 ? 'inline' : 'none';
+            badge.innerText = `${selectedQuestions.length} Selected`;
+        }
+
+        // 3. Generate the Exam (Saves selection to a special Firebase path)
+        function generateFromBank() {
+            if (selectedQuestions.length === 0) {
+                alert("Please select at least one question first!");
+                return;
+            }
+
+            const session = document.getElementById('examSession').value;
+            
+            // We save the selected set to 'active_exam' so the student page knows what to load
+            database.ref('active_exam').set({
+                questions: selectedQuestions,
+                generatedAt: new Date().toLocaleString(),
+                batch: session
+            }).then(() => {
+                alert(`SUCCESS! Exam generated for ${session} with ${selectedQuestions.length} questions.`);
+            });
+        }
+
+        // --- Rest of your existing Results & Sidebar logic ---
+        database.ref('exam_results').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const listDiv = document.getElementById('studentList');
+            listDiv.innerHTML = "";
+            if (!data) return;
+            for (let id in data) {
+                const student = data[id];
+                listDiv.innerHTML += `
+                    <div class="q-card" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div><strong>${student.name}</strong></div>
+                        <div style="text-align:right;">
+                            <span style="font-weight:bold; color:var(--accent);">${student.score}/25</span><br>
+                            <button class="generate-btn" style="padding:5px 10px; font-size:11px;" onclick="viewStudentDetails('${id}')">VIEW</button>
+                        </div>
+                    </div>`;
+            }
+        });
+
+        const semesterData = {
+            sem1: ["1.1 Unit and Measurements", "1.2 Fraction & Decimal", "1.3 Square Root", "1.4 Ratio & Proportion", "1.5 Percentage", "1.6 Material Science", "1.7 Mass, Weight & Density", "1.8 Speed and Velocity", "1.9 Work, Power and Energy"],
+            sem2: ["2.1 Algebra", "2.2 Mensuration", "2.3 Volume and Weight", "2.4 Trigonometry", "2.5 Simple Machines", "2.6 Heat and Temperature", "2.7 Basic Electricity"],
+            sem3: ["3.1 Algebra", "3.2 Square Root", "3.3 Electrical Components Connection", "3.4 AC Circuits", "3.5 Strength of Material", "3.6 Material Science", "3.7 Magnetism", "3.8 Hydrostatics"],
+            sem4: ["4.1 Number Systems", "4.2 Estimating and Costing", "4.3 Volume and Weight", "4.4 Graph", "4.5 Applied Mathematics - I", "4.6 Applied Mathematics - II", "4.7 Friction", "4.8 Hydrostatics", "4.9 Heat Treatment", "4.10 Statics"]
+        };
+
+        function updateMainTopics() {
+            const sem = document.getElementById('semester').value;
+            const topicSelect = document.getElementById('mainTopic');
+            topicSelect.innerHTML = "";
+            if(sem && semesterData[sem]) {
+                semesterData[sem].forEach(topic => {
+                    const opt = document.createElement('option');
+                    opt.value = topic; opt.innerHTML = topic;
+                    topicSelect.appendChild(opt);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
