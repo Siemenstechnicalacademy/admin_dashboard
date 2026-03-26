@@ -7,44 +7,70 @@
     <style>
         :root {
             --primary: #1a252f;
-            --accent: #00828c; /* Siemens Teal */
+            --accent: #3498db;
             --sidebar-bg: #2c3e50;
             --btn-green: #27ae60;
             --btn-red: #e74c3c;
+            --btn-gray: #7f8c8d;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { display: flex; height: 100vh; background-color: #f4f7f6; overflow: hidden; }
 
+        /* --- SIDEBAR --- */
         .sidebar {
             width: 320px; background-color: var(--sidebar-bg); color: white;
             padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
             border-right: 1px solid #3e4f5f;
         }
-        .logo { font-size: 18px; font-weight: bold; color: #3498db; border-bottom: 1px solid #3e4f5f; padding-bottom: 10px; margin-bottom: 5px; }
+        .logo { font-size: 18px; font-weight: bold; color: var(--accent); border-bottom: 1px solid #3e4f5f; padding-bottom: 10px; margin-bottom: 5px; }
+
         label { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #bdc3c7; display: block; margin-bottom: 5px; }
+
         select {
             width: 100%; padding: 10px; border-radius: 5px; border: none;
             background-color: #34495e; color: white; outline: none; font-size: 14px;
         }
+
+        /* --- CUSTOM CHECKBOX DROPDOWN --- */
+        .multiselect { width: 100%; position: relative; }
+        .selectBox { position: relative; }
+        .selectBox select { width: 100%; font-weight: bold; cursor: pointer; }
+        .overSelect { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+
+        #checkboxes {
+            display: none; border: 1px solid #3e4f5f; background-color: #34495e;
+            max-height: 180px; overflow-y: auto; border-radius: 0 0 5px 5px;
+            position: absolute; width: 100%; z-index: 10;
+        }
+        #checkboxes label {
+            display: block; color: white; padding: 8px; text-transform: none;
+            font-weight: normal; font-size: 13px; cursor: pointer; border-bottom: 1px solid #3e4f5f;
+        }
+        #checkboxes label:hover { background-color: var(--accent); }
+        #checkboxes input { margin-right: 10px; }
+
         .generate-btn {
             background-color: var(--btn-green); color: white; border: none;
             padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer;
             margin-top: 10px; transition: 0.3s;
         }
+        .generate-btn:hover { background-color: #219150; }
+        
+        /* NEW: Clear Button Style */
+        .clear-btn {
+            background-color: var(--btn-red); color: white; border: none;
+            padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;
+            font-size: 12px; transition: 0.3s;
+        }
+        .clear-btn:hover { background-color: #c0392b; }
+
+        /* MAIN CONTENT */
         .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .q-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid #3498db; position: relative; }
-        .q-card.selected { border-left: 6px solid var(--btn-green); background-color: #f0fff4; }
+        .q-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); }
+        
         .tab-btn { background: #34495e; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px 5px 0 0; font-weight: bold; margin-right: 5px;}
         .tab-btn.active { background: #f4f7f6; color: var(--primary); border: 1px solid #ddd; border-bottom: none; }
-        
-        .q-checkbox { position: absolute; top: 20px; right: 20px; transform: scale(1.5); cursor: pointer; }
-        .selection-counter { background: var(--btn-green); color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; margin-left: 10px; }
-        
-        /* Added for Review Status */
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; display: inline-block; }
-        .correct { background: #d4edda; color: #155724; }
-        .incorrect { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -78,8 +104,27 @@
             </select>
         </div>
 
-        <button class="generate-btn" onclick="generateFromBank()">🚀 GENERATE SELECTED EXAM</button>
-        <p style="font-size: 11px; color: #bdc3c7; text-align: center;">Selected questions will be sent to the live exam rotation.</p>
+        <div>
+            <label>Category (Difficulty)</label>
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Question Quantity (0-50)</label>
+            <div class="multiselect">
+                <div class="selectBox" onclick="showCheckboxes()">
+                    <select><option>Select Amount</option></select>
+                    <div class="overSelect"></div>
+                </div>
+                <div id="checkboxes"></div>
+            </div>
+        </div>
+
+        <button class="generate-btn" onclick="generateFromBank()">GENERATE QUESTION SET</button>
     </aside>
 
     <main class="main-content">
@@ -89,24 +134,21 @@
         </div>
         
         <div id="designer-section" style="background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h1 id="designer-title" style="display: flex; align-items: center;">
-                    Question Explorer 
-                    <span id="count-badge" class="selection-counter" style="display:none;">0 Selected</span>
-                </h1>
-                <button class="generate-btn" style="background: var(--accent); margin: 0;" onclick="viewCurrentTopic()">LOAD QUESTIONS</button>
-            </div>
+            <h1>Examination Designer</h1>
             <hr style="margin: 20px 0; border: 0.5px solid #ddd;">
             <div id="questionDisplay">
-                <p style="color: #888;">1. Select Topic in Sidebar<br>2. Click "Load Questions"<br>3. Check the boxes of questions you want in the exam.</p>
+                <p style="color: #888;">Select an exam session and chapter to begin generating questions.</p>
             </div>
         </div>
 
         <div id="results-section" style="display: none; background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
-            <h1>Live Student Results</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1>Live Student Results</h1>
+                <button class="clear-btn" onclick="clearPerformanceData()">CLEAR ALL RESULTS</button>
+            </div>
             <hr style="margin: 20px 0; border: 0.5px solid #ddd;">
             <div id="studentList">
-                <p style="color: #888;">Waiting for data...</p>
+                <p style="color: #888;">No submissions yet...</p>
             </div>
         </div>
     </main>
@@ -115,10 +157,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <script>
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyApnWnlnrTFQw5hsHVvjnK0kvwqIh3Nh5E",
             authDomain: "sta-question-bank.firebaseapp.com",
-            databaseURL: "https://sta-question-bank-default-rtdb.asia-southeast1.firebasedatabase.app",
+            databaseURL: "https://sta-question-bank-default-rtdb.asia-southeast1.firebasedatabase.app/",
             projectId: "sta-question-bank",
             storageBucket: "sta-question-bank.firebasestorage.app",
             messagingSenderId: "632844417227",
@@ -128,16 +171,14 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        let selectedQuestions = []; 
-
-        const dbMap = {
-            "2.1 Algebra": "algebra",
-            "2.2 Mensuration": "mensuration",
-            "2.3 Volume and Weight": "volume",
-            "3.1 Algebra": "algebra",
-            "4.3 Volume and Weight": "volume"
+        const semesterData = {
+            sem1: ["1.1 Unit and Measurements", "1.2 Fraction & Decimal", "1.3 Square Root", "1.4 Ratio & Proportion", "1.5 Percentage", "1.6 Material Science", "1.7 Mass, Weight & Density", "1.8 Speed and Velocity", "1.9 Work, Power and Energy"],
+            sem2: ["2.1 Algebra", "2.2 Mensuration", "2.3 Volume and Weight", "2.4 Trigonometry", "2.5 Simple Machines", "2.6 Heat and Temperature", "2.7 Basic Electricity"],
+            sem3: ["3.1 Algebra", "3.2 Square Root", "3.3 Electrical Components Connection", "3.4 AC Circuits", "3.5 Strength of Material", "3.6 Material Science", "3.7 Magnetism", "3.8 Hydrostatics"],
+            sem4: ["4.1 Number Systems", "4.2 Estimating and Costing", "4.3 Volume and Weight", "4.4 Graph", "4.5 Applied Mathematics - I", "4.6 Applied Mathematics - II", "4.7 Friction", "4.8 Hydrostatics", "4.9 Heat Treatment", "4.10 Statics"]
         };
 
+        // UI Tab Switching
         function switchTab(tab) {
             document.getElementById('designer-section').style.display = tab === 'designer' ? 'block' : 'none';
             document.getElementById('results-section').style.display = tab === 'results' ? 'block' : 'none';
@@ -145,140 +186,76 @@
             document.getElementById('btn-results').classList.toggle('active', tab === 'results');
         }
 
-        function viewCurrentTopic() {
-            document.getElementById('designer-title').innerText = "Question Explorer";
-            const selectedTopic = document.getElementById('mainTopic').value;
-            const displayArea = document.getElementById('questionDisplay');
-            
-            if (!selectedTopic || selectedTopic.includes("Select")) {
-                alert("Please select a Topic first!"); return;
-            }
-
-            const dbKey = dbMap[selectedTopic] || selectedTopic.toLowerCase();
-            displayArea.innerHTML = `<p><em>Loading from bank...</em></p>`;
-
-            database.ref('question_bank/' + dbKey).once('value', (snapshot) => {
-                const questions = snapshot.val();
-                if (!questions) {
-                    displayArea.innerHTML = `<p style="color:red;">No questions found for ${selectedTopic}</p>`;
-                    return;
-                }
-
-                let html = `<h3>Select Questions from: ${selectedTopic}</h3><br>`;
-                questions.forEach((item, index) => {
-                    html += `
-                        <div class="q-card" id="card-${index}">
-                            <input type="checkbox" class="q-checkbox" onchange='toggleSelection(${JSON.stringify(item)}, "card-${index}")'>
-                            <strong>Q:</strong> ${item.q}<br>
-                            <div style="margin: 8px 0; color: #666; font-size: 13px;">${item.options.join(" | ")}</div>
-                            <span style="color: var(--btn-green); font-weight: bold;">✔ ${item.answer}</span>
-                        </div>`;
-                });
-                displayArea.innerHTML = html;
-            });
-        }
-
-        function toggleSelection(questionObj, cardId) {
-            const card = document.getElementById(cardId);
-            const index = selectedQuestions.findIndex(q => q.q === questionObj.q);
-            if (index > -1) {
-                selectedQuestions.splice(index, 1);
-                card.classList.remove('selected');
-            } else {
-                selectedQuestions.push(questionObj);
-                card.classList.add('selected');
-            }
-            const badge = document.getElementById('count-badge');
-            badge.style.display = selectedQuestions.length > 0 ? 'inline' : 'none';
-            badge.innerText = `${selectedQuestions.length} Selected`;
-        }
-
-        function generateFromBank() {
-            if (selectedQuestions.length === 0) {
-                alert("Please select at least one question first!");
-                return;
-            }
-            const session = document.getElementById('examSession').value;
-            database.ref('active_exam').set({
-                questions: selectedQuestions,
-                generatedAt: new Date().toLocaleString(),
-                batch: session
-            }).then(() => {
-                alert(`SUCCESS! Exam generated for ${session} with ${selectedQuestions.length} questions.`);
-            });
-        }
-
-        // --- FIXED VIEW LOGIC ---
-        function viewStudentDetails(id) {
-            const displayArea = document.getElementById('questionDisplay');
-            document.getElementById('designer-title').innerText = "Student Response Review";
-            displayArea.innerHTML = "<em>Loading responses...</em>";
-
-            database.ref('exam_results/' + id).once('value', (snapshot) => {
-                const student = snapshot.val();
-                if (!student || !student.details) {
-                    displayArea.innerHTML = "<p style='color:red;'>No detailed question data found for this student.</p>";
-                    switchTab('designer');
-                    return;
-                }
-
-                // Handle both Array and Object formats from Firebase
-                const details = Array.isArray(student.details) ? student.details : Object.values(student.details);
-
-                let html = `<div style="display:flex; justify-content:space-between; align-items:center;">
-                                <h2>Review: ${student.name}</h2>
-                                <button class="generate-btn" style="background:#888; margin:0;" onclick="viewCurrentTopic()">BACK TO EXPLORER</button>
-                            </div>
-                            <p style="margin: 10px 0;">Final Score: <strong>${student.score}</strong> | Submitted: ${student.submittedAt || 'N/A'}</p>
-                            <hr style="margin:20px 0;">`;
-
-                details.forEach((item, index) => {
-                    const isCorrect = item.status === true;
-                    const cardColor = isCorrect ? "var(--btn-green)" : "var(--btn-red)";
-                    
-                    html += `
-                        <div class="q-card" style="border-left: 6px solid ${cardColor}">
-                            <div class="status-badge ${isCorrect ? 'correct' : 'incorrect'}">
-                                ${isCorrect ? '✔ Correct' : '✖ Incorrect'}
-                            </div>
-                            <p><strong>Q${index + 1}:</strong> ${item.question}</p>
-                            <p style="margin-top:10px;">Student Chose: <span style="font-weight:bold; color:${isCorrect ? '#155724' : '#721c24'}">${item.userSelection || 'No Answer'}</span></p>
-                            ${!isCorrect ? `<p style="color:#27ae60; font-size:13px;">Correct Answer: <strong>${item.correctAnswer}</strong></p>` : ''}
-                        </div>`;
-                });
-
-                displayArea.innerHTML = html;
-                switchTab('designer'); // Automatically jump to the designer view
-            });
-        }
-
+        // Live Results Listener
         database.ref('exam_results').on('value', (snapshot) => {
             const data = snapshot.val();
             const listDiv = document.getElementById('studentList');
             listDiv.innerHTML = "";
+
             if (!data) {
                 listDiv.innerHTML = "<p style='color:#888;'>No submissions yet...</p>";
                 return;
             }
+
             for (let id in data) {
                 const student = data[id];
                 listDiv.innerHTML += `
                     <div class="q-card" style="display:flex; justify-content:space-between; align-items:center;">
-                        <div><strong>${student.name}</strong></div>
+                        <div>
+                            <strong>${student.name}</strong><br>
+                            <small style="color:#888">${student.submittedAt}</small>
+                        </div>
                         <div style="text-align:right;">
-                            <span style="font-weight:bold; color:var(--accent);">${student.score}/25</span><br>
-                            <button class="generate-btn" style="padding:5px 10px; font-size:11px;" onclick="viewStudentDetails('${id}')">VIEW DETAILS</button>
+                            <span style="font-size:18px; font-weight:bold; color:var(--accent);">${student.score}/20</span><br>
+                            <button class="generate-btn" style="padding:5px 10px; font-size:11px; margin-top:5px; background:var(--btn-gray);" onclick="viewStudentDetails('${id}')">VIEW ANSWERS</button>
                         </div>
                     </div>`;
             }
         });
 
-        const semesterData = {
-            sem1: ["1.1 Unit and Measurements", "1.2 Fraction & Decimal", "1.3 Square Root", "1.4 Ratio & Proportion", "1.5 Percentage", "1.6 Material Science", "1.7 Mass, Weight & Density", "1.8 Speed and Velocity", "1.9 Work, Power and Energy"],
-            sem2: ["2.1 Algebra", "2.2 Mensuration", "2.3 Volume and Weight", "2.4 Trigonometry", "2.5 Simple Machines", "2.6 Heat and Temperature", "2.7 Basic Electricity"],
-            sem3: ["3.1 Algebra", "3.2 Square Root", "3.3 Electrical Components Connection", "3.4 AC Circuits", "3.5 Strength of Material", "3.6 Material Science", "3.7 Magnetism", "3.8 Hydrostatics"],
-            sem4: ["4.1 Number Systems", "4.2 Estimating and Costing", "4.3 Volume and Weight", "4.4 Graph", "4.5 Applied Mathematics - I", "4.6 Applied Mathematics - II", "4.7 Friction", "4.8 Hydrostatics", "4.9 Heat Treatment", "4.10 Statics"]
-        };
+        // NEW: Clear Performance Logic
+        function clearPerformanceData() {
+            if (confirm("CRITICAL ACTION: This will permanently delete ALL student exam results from the database. Are you sure?")) {
+                database.ref('exam_results').remove()
+                    .then(() => {
+                        alert("Database cleared successfully.");
+                    })
+                    .catch((error) => {
+                        alert("Error clearing data: " + error.message);
+                    });
+            }
+        }
+
+        function viewStudentDetails(id) {
+            database.ref('exam_results/' + id).once('value', (snapshot) => {
+                const student = snapshot.val();
+                if(!student) return;
+                
+                let html = `<h2>Response Review: ${student.name}</h2>
+                            <button class="generate-btn" style="background:var(--btn-gray);" onclick="switchTab('results')">Back to List</button><hr style="margin:20px 0;">`;
+                
+                student.details.forEach((item, index) => {
+                    const color = item.status ? "#27ae60" : "#e74c3c";
+                    html += `
+                        <div class="q-card" style="border-left: 6px solid ${color}">
+                            <p><strong>Q${index + 1}:</strong> ${item.question}</p>
+                            <p>Student Chose: <span style="color:${color}; font-weight:bold;">${item.userSelection}</span></p>
+                            ${!item.status ? `<p style="color:#27ae60">Correct Answer: ${item.correctAnswer}</p>` : ''}
+                        </div>`;
+                });
+
+                document.getElementById('questionDisplay').innerHTML = html;
+                switchTab('designer'); 
+            });
+        }
+
+        // --- SIDEBAR LOGIC ---
+        const checkboxContainer = document.getElementById("checkboxes");
+        for (let i = 0; i <= 50; i++) {
+            const label = document.createElement("label");
+            label.innerHTML = `<input type="checkbox" name="qty" value="${i}" /> ${i} Questions`;
+            checkboxContainer.appendChild(label);
+        }
 
         function updateMainTopics() {
             const sem = document.getElementById('semester').value;
@@ -287,11 +264,50 @@
             if(sem && semesterData[sem]) {
                 semesterData[sem].forEach(topic => {
                     const opt = document.createElement('option');
-                    opt.value = topic; opt.innerHTML = topic;
+                    opt.value = topic;
+                    opt.innerHTML = topic;
                     topicSelect.appendChild(opt);
                 });
+            } else {
+                topicSelect.innerHTML = "<option>Select Semester First</option>";
             }
         }
+
+        let expanded = false;
+        function showCheckboxes() {
+            const checkboxes = document.getElementById("checkboxes");
+            checkboxes.style.display = expanded ? "none" : "block";
+            expanded = !expanded;
+        }
+
+        function generateFromBank() {
+            const session = document.getElementById('examSession').value;
+            const chapter = document.getElementById('mainTopic').value;
+            const selectedQtys = Array.from(document.querySelectorAll('input[name="qty"]:checked')).map(c => parseInt(c.value));
+            const total = selectedQtys.reduce((a, b) => a + b, 0);
+
+            if (!chapter || total === 0) {
+                alert("Please select a Chapter and Quantity!");
+                return;
+            }
+
+            document.getElementById('questionDisplay').innerHTML = `
+                <div class="q-card">
+                    <h3>Generating Exam for ${session}</h3>
+                    <p>Chapter: <strong>${chapter}</strong></p>
+                    <p>Total Questions: <strong>${total}</strong></p>
+                    <p style="color:var(--btn-green); margin-top:10px;">Scanning Question Bank...</p>
+                </div>`;
+            switchTab('designer');
+        }
+
+        document.addEventListener('click', function(e) {
+            const multiselect = document.querySelector('.multiselect');
+            if (multiselect && !multiselect.contains(e.target)) {
+                document.getElementById("checkboxes").style.display = "none";
+                expanded = false;
+            }
+        });
     </script>
 </body>
 </html>
