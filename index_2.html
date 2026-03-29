@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STA Admin | Full Question Bank Engine</title>
+    <style>
+        :root {
+            --primary: #1a252f;
+            --accent: #3498db;
+            --sidebar-bg: #2c3e50;
+            --btn-green: #27ae60;
+            --btn-red: #e74c3c;
+            --btn-gray: #7f8c8d;
+            --btn-blue: #2980b9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { display: flex; height: 100vh; background-color: #f4f7f6; overflow: hidden; }
+
+        /* --- PDF/PRINT OPTIMIZATION --- */
+        @media print {
+            .sidebar, .tab-btn, .clear-btn, .export-btn, .generate-btn, .logo, label, select, .no-print { 
+                display: none !important; 
+            }
+            .main-content { padding: 0; overflow: visible; width: 100%; position: absolute; left: 0; top: 0; }
+            body { background: white; display: block; }
+            .q-card { 
+                box-shadow: none !important; 
+                border: 1px solid #ddd !important; 
+                page-break-inside: avoid; 
+                margin-bottom: 15px;
+            }
+            #results-section { display: block !important; }
+            h1 { font-size: 20px; color: black; }
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 320px; background-color: var(--sidebar-bg); color: white;
+            padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
+            border-right: 1px solid #3e4f5f;
+        }
+        .logo { font-size: 18px; font-weight: bold; color: var(--accent); border-bottom: 1px solid #3e4f5f; padding-bottom: 10px; margin-bottom: 5px; }
+
+        label { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #bdc3c7; display: block; margin-bottom: 5px; }
+
+        select {
+            width: 100%; padding: 10px; border-radius: 5px; border: none;
+            background-color: #34495e; color: white; outline: none; font-size: 14px;
+        }
+
+        .generate-btn {
+            background-color: var(--btn-green); color: white; border: none;
+            padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer;
+            margin-top: 10px; transition: 0.3s;
+        }
+        
+        .clear-btn {
+            background-color: var(--btn-red); color: white; border: none;
+            padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;
+            font-size: 12px; margin-left: 5px;
+        }
+
+        .export-btn {
+            background-color: var(--btn-blue); color: white; border: none;
+            padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;
+            font-size: 12px;
+        }
+
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .q-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); position: relative; }
+        
+        .tab-btn { background: #34495e; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px 5px 0 0; font-weight: bold; margin-right: 5px;}
+        .tab-btn.active { background: #f4f7f6; color: var(--primary); border: 1px solid #ddd; border-bottom: none; }
+        
+        .ans-row { margin-top: 10px; padding: 10px; border-radius: 4px; font-size: 13px; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">STA ADMIN DASHBOARD</div>
+        <div>
+            <label>Select Batch</label>
+            <select id="examSession">
+                <option value="61st EA">61st EA</option>
+                <option value="61st EB">61st EB</option>
+            </select>
+        </div>
+        <div>
+            <label>Select Semester</label>
+            <select id="semester" onchange="updateMainTopics()">
+                <option value="">-- Select Semester --</option>
+                <option value="sem1">I SEMESTER</option>
+                <option value="sem2">II SEMESTER</option>
+            </select>
+        </div>
+        <div>
+            <label>Main Topic</label>
+            <select id="mainTopic"><option value="">Select Semester First</option></select>
+        </div>
+        <button class="generate-btn" onclick="generateFromBank()">GENERATE QUESTION SET</button>
+    </aside>
+
+    <main class="main-content">
+        <div class="no-print" style="display: flex;">
+            <button class="tab-btn active" id="btn-designer" onclick="switchTab('designer')">Examination Designer</button>
+            <button class="tab-btn" id="btn-results" onclick="switchTab('results')">Student Performance</button>
+        </div>
+        
+        <div id="designer-section" style="background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <h1 id="main-title">Examination Designer</h1>
+            <hr style="margin: 20px 0; border: 0.5px solid #ddd;">
+            <div id="questionDisplay">
+                <p style="color: #888;">Select an exam session and chapter to begin.</p>
+            </div>
+        </div>
+
+        <div id="results-section" style="display: none; background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1>Live Student Performance Report</h1>
+                <div class="no-print">
+                    <button class="export-btn" onclick="generateFullPDFReport()">📥 EXPORT ALL TO PDF</button>
+                    <button class="clear-btn" onclick="clearPerformanceData()">🗑 CLEAR DATABASE</button>
+                </div>
+            </div>
+            <hr style="margin: 20px 0; border: 0.5px solid #ddd;">
+            <div id="studentList">
+                <p style="color: #888;">No submissions yet...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyApnWnlnrTFQw5hsHVvjnK0kvwqIh3Nh5E",
+            authDomain: "sta-question-bank.firebaseapp.com",
+            databaseURL: "https://sta-question-bank-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "sta-question-bank",
+            storageBucket: "sta-question-bank.firebasestorage.app",
+            messagingSenderId: "632844417227",
+            appId: "1:632844417227:web:6b60831113d49c18fd834e"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function switchTab(tab) {
+            document.getElementById('designer-section').style.display = tab === 'designer' ? 'block' : 'none';
+            document.getElementById('results-section').style.display = tab === 'results' ? 'block' : 'none';
+            document.getElementById('btn-designer').classList.toggle('active', tab === 'designer');
+            document.getElementById('btn-results').classList.toggle('active', tab === 'results');
+        }
+
+        // --- PDF GENERATION LOGIC ---
+        function generateFullPDFReport() {
+            const listDiv = document.getElementById('studentList');
+            if (listDiv.innerText.includes("No submissions")) {
+                alert("No data to export!");
+                return;
+            }
+
+            // Switch to Results Tab and open Print Dialog
+            switchTab('results');
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+
+        // Live Results Listener
+        database.ref('exam_results').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const listDiv = document.getElementById('studentList');
+            listDiv.innerHTML = "";
+
+            if (!data) {
+                listDiv.innerHTML = "<p style='color:#888;'>No submissions yet...</p>";
+                return;
+            }
+
+            for (let id in data) {
+                const student = data[id];
+                let detailHtml = "";
+                
+                // Construct inner detail view for the PDF
+                student.details.forEach((item, index) => {
+                    const color = item.status ? "#27ae60" : "#e74c3c";
+                    detailHtml += `
+                        <div class="ans-row" style="border-left: 3px solid ${color}">
+                            <strong>Q${index + 1}:</strong> ${item.question}<br>
+                            Student: <span style="color:${color}">${item.userSelection}</span> | 
+                            Correct: <span style="color:#27ae60">${item.correctAnswer}</span>
+                        </div>`;
+                });
+
+                listDiv.innerHTML += `
+                    <div class="q-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+                            <div>
+                                <strong style="font-size:16px;">${student.name}</strong><br>
+                                <small style="color:#888">Submitted: ${student.submittedAt}</small>
+                            </div>
+                            <div style="text-align:right;">
+                                <span style="font-size:18px; font-weight:bold; color:var(--accent);">Score: ${student.score}/20</span>
+                            </div>
+                        </div>
+                        <div class="detail-container">
+                            ${detailHtml}
+                        </div>
+                    </div>`;
+            }
+        });
+
+        function clearPerformanceData() {
+            if (confirm("Permanently delete ALL records?")) {
+                database.ref('exam_results').remove();
+            }
+        }
+
+        // Rest of your sidebar logic...
+        function updateMainTopics() { /* ... already in your code ... */ }
+        function generateFromBank() { /* ... already in your code ... */ }
+    </script>
+</body>
+</html>

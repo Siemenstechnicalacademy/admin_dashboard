@@ -4,56 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-# Strict Shuffling & Logarithm Rule Implementation
-
-Ensure both Batch 61st and 62nd follow a mathematically unbiased shuffling algorithm and adhere to the compulsory Logarithm sub-type rule (1 each of Multiplication, Division, Power, and Root).
-
-## User Review Required
-
-> [!IMPORTANT]
-> To implement the compulsory Logarithm rule for Batch 61st, I will be adding a Logarithm section to their question bank and adjusting their topic distribution (7 Volume, 7 Algebra, 7 Mensuration, 4 Logarithm).
-
-## Proposed Changes
-
-### [Shuffling Algorithm]
-Implement the **Fisher-Yates (Knuth) Shuffle** in a shared utility or local to both scripts. This is the industry standard for "Strict Shuffling."
-
----
-
-### [Batch 61st]
-
-#### [NEW] [question_bank.js](file:///c:/Siemens%20_CBT/Batch_61st/question_bank.js)
-- Move hardcoded questions from `script.js` to this new standalone file.
-- Add 4 categories of Logarithm questions (Multiplication, Division, Power, Root).
-
-#### [MODIFY] [index.html](file:///c:/Siemens%20_CBT/Batch_61st/index.html)
-- Load `question_bank.js` before `script.js`.
-
-#### [MODIFY] [script.js](file:///c:/Siemens%20_CBT/Batch_61st/script.js)
-- Update `generateQuestionsByLogin` to draw exactly 1 of each Logarithm sub-type.
-- Implement the Fisher-Yates shuffle.
-- Ensure the `localStorage` pool system never repeats a question until the topic pool is completely empty.
-
----
-
-### [Batch 62nd]
-
-#### [MODIFY] [script.js](file:///c:/Siemens%20_CBT/Batch_62nd/script.js)
-- Upgrade shuffling to Fisher-Yates.
-- Refine the `topicPool` logic to ensure strict no-repeat until the very last question.
-
-## Open Questions
-
-- Should the Logarithm questions for the 61st Batch be the same as the 62nd Batch, or should they be simplified? (I will assume same difficulty unless told otherwise).
-
-## Verification Plan
-
-### Automated Tests
-- Use the browser tool to log in as a test student multiple times and verify that the first 4 questions from the Logarithm pool are always 1 of each sub-type.
-- Check `localStorage` to ensure the pool reduces in size after each draw and only refills when empty.
-
-### Manual Verification
-- Manually run the shuffle function in the console to verify unbiased distribution.
     <title>STA Admin | Full Question Bank Engine</title>
     <style>
         :root {
@@ -74,9 +24,58 @@ Implement the **Fisher-Yates (Knuth) Shuffle** in a shared utility or local to b
 
         body {
             display: flex;
-            height: 100vh;
+            min-height: 100vh;
+            height: 100%;
             background-color: #f4f7f6;
-            overflow: hidden;
+            overflow: auto;
+        }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                overflow: auto;
+            }
+            .sidebar {
+                width: 100% !important;
+                max-height: none !important;
+                overflow-y: visible;
+                border-right: none !important;
+                border-bottom: 2px solid #3e4f5f;
+                padding: 14px 14px;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .logo {
+                width: 100%;
+            }
+            .main-content {
+                overflow-y: auto !important;
+                width: 100% !important;
+                padding: 14px !important;
+            }
+            .tab-btn {
+                font-size: 12px !important;
+                padding: 8px 10px !important;
+            }
+            table {
+                font-size: 12px;
+            }
+            th, td {
+                padding: 8px 6px !important;
+            }
+            .result-card {
+                padding: 12px !important;
+            }
+            .generate-btn, .clear-btn, .export-btn {
+                width: 100% !important;
+                text-align: center;
+            }
+            select, input {
+                font-size: 14px !important;
+            }
         }
 
         /* --- PDF/PRINT OPTIMIZATION --- */
