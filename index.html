@@ -17,6 +17,24 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { display: flex; height: 100vh; background-color: #f4f7f6; overflow: hidden; }
 
+        /* --- PDF/PRINT OPTIMIZATION --- */
+        @media print {
+            .sidebar, .tab-btn, .clear-btn, .export-btn, .generate-btn, .logo, label, select, .no-print, hr { 
+                display: none !important; 
+            }
+            .main-content { padding: 0; overflow: visible; width: 100%; position: absolute; left: 0; top: 0; }
+            body { background: white; display: block; }
+            .q-card { 
+                box-shadow: none !important; 
+                border: 1px solid #ddd !important; 
+                page-break-inside: avoid; 
+                margin-bottom: 15px;
+            }
+            #results-section { display: block !important; }
+            #designer-section { display: none !important; }
+            h1 { font-size: 20px; color: black; }
+        }
+
         /* --- SIDEBAR --- */
         .sidebar {
             width: 320px; background-color: var(--sidebar-bg); color: white;
@@ -24,9 +42,7 @@
             border-right: 1px solid #3e4f5f;
         }
         .logo { font-size: 18px; font-weight: bold; color: var(--accent); border-bottom: 1px solid #3e4f5f; padding-bottom: 10px; margin-bottom: 5px; }
-
         label { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #bdc3c7; display: block; margin-bottom: 5px; }
-
         select {
             width: 100%; padding: 10px; border-radius: 5px; border: none;
             background-color: #34495e; color: white; outline: none; font-size: 14px;
@@ -37,7 +53,6 @@
         .selectBox { position: relative; }
         .selectBox select { width: 100%; font-weight: bold; cursor: pointer; }
         .overSelect { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
-
         #checkboxes {
             display: none; border: 1px solid #3e4f5f; background-color: #34495e;
             max-height: 180px; overflow-y: auto; border-radius: 0 0 5px 5px;
@@ -55,29 +70,27 @@
             padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer;
             margin-top: 10px; transition: 0.3s;
         }
-        .generate-btn:hover { background-color: #219150; }
-        
-        /* NEW: Clear Button Style */
         .clear-btn {
             background-color: var(--btn-red); color: white; border: none;
-            padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;
+            padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;
             font-size: 12px; transition: 0.3s;
         }
-        .clear-btn:hover { background-color: #c0392b; }
+        .export-btn {
+            background-color: var(--accent); color: white; border: none;
+            padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;
+            font-size: 12px; display: inline-flex; align-items: center; gap: 8px;
+        }
 
-        /* MAIN CONTENT */
         .main-content { flex: 1; padding: 40px; overflow-y: auto; }
         .q-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); }
-        
         .tab-btn { background: #34495e; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px 5px 0 0; font-weight: bold; margin-right: 5px;}
         .tab-btn.active { background: #f4f7f6; color: var(--primary); border: 1px solid #ddd; border-bottom: none; }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
+    <aside class="sidebar no-print">
         <div class="logo">STA ADMIN DASHBOARD</div>
-
         <div>
             <label>Select Batch</label>
             <select id="examSession">
@@ -85,7 +98,6 @@
                 <option value="61st EB">61st EB</option>
             </select>
         </div>
-
         <div>
             <label>Select Semester</label>
             <select id="semester" onchange="updateMainTopics()">
@@ -96,23 +108,12 @@
                 <option value="sem4">IV SEMESTER</option>
             </select>
         </div>
-
         <div>
             <label>Main Topic (Chapter)</label>
             <select id="mainTopic">
                 <option value="">Select Semester First</option>
             </select>
         </div>
-
-        <div>
-            <label>Category (Difficulty)</label>
-            <select id="difficulty">
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-            </select>
-        </div>
-
         <div>
             <label>Question Quantity (0-50)</label>
             <div class="multiselect">
@@ -123,30 +124,41 @@
                 <div id="checkboxes"></div>
             </div>
         </div>
-
         <button class="generate-btn" onclick="generateFromBank()">GENERATE QUESTION SET</button>
     </aside>
 
     <main class="main-content">
-        <div style="display: flex;">
+        <div style="display: flex;" class="no-print">
             <button class="tab-btn active" id="btn-designer" onclick="switchTab('designer')">Examination Designer</button>
             <button class="tab-btn" id="btn-results" onclick="switchTab('results')">Student Performance</button>
         </div>
         
         <div id="designer-section" style="background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
-            <h1>Examination Designer</h1>
-            <hr style="margin: 20px 0; border: 0.5px solid #ddd;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <h1 style="font-size: 28px; color: var(--primary);">Question Explorer</h1>
+                    <span id="selectedCount" style="background: #bdc3c7; color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: bold;">0 Selected</span>
+                </div>
+                <button class="no-print" onclick="loadTopicQuestions()" style="background-color: #34495e; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px;">Load Questions</button>
+            </div>
+            <p id="currentTopicLabel" style="color: #555; font-weight: bold; margin-bottom: 15px;">Select Questions from: None</p>
+            <hr style="margin-bottom: 20px; border: 0.5px solid #eee;">
             <div id="questionDisplay">
-                <p style="color: #888;">Select an exam session and chapter to begin generating questions.</p>
+                <p style="color: #888; text-align: center; padding: 40px;">Select a semester and topic, then click "Load Questions" to begin.</p>
             </div>
         </div>
 
         <div id="results-section" style="display: none; background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="results-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h1>Live Student Results</h1>
-                <button class="clear-btn" onclick="clearPerformanceData()">CLEAR ALL RESULTS</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="export-btn no-print" onclick="generateFullPDFReport()">
+                        <span>📥</span> <b>EXPORT TO PDF</b>
+                    </button>
+                    <button class="clear-btn no-print" onclick="clearPerformanceData()">CLEAR ALL RESULTS</button>
+                </div>
             </div>
-            <hr style="margin: 20px 0; border: 0.5px solid #ddd;">
+            <hr style="margin: 20px 0; border: 0.5px solid #ddd;" class="no-print">
             <div id="studentList">
                 <p style="color: #888;">No submissions yet...</p>
             </div>
@@ -157,7 +169,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <script>
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyApnWnlnrTFQw5hsHVvjnK0kvwqIh3Nh5E",
             authDomain: "sta-question-bank.firebaseapp.com",
@@ -178,7 +189,6 @@
             sem4: ["4.1 Number Systems", "4.2 Estimating and Costing", "4.3 Volume and Weight", "4.4 Graph", "4.5 Applied Mathematics - I", "4.6 Applied Mathematics - II", "4.7 Friction", "4.8 Hydrostatics", "4.9 Heat Treatment", "4.10 Statics"]
         };
 
-        // UI Tab Switching
         function switchTab(tab) {
             document.getElementById('designer-section').style.display = tab === 'designer' ? 'block' : 'none';
             document.getElementById('results-section').style.display = tab === 'results' ? 'block' : 'none';
@@ -186,7 +196,17 @@
             document.getElementById('btn-results').classList.toggle('active', tab === 'results');
         }
 
-        // Live Results Listener
+        // FIXED PDF Export Function
+        function generateFullPDFReport() {
+            const listDiv = document.getElementById('studentList');
+            if (listDiv.innerText.includes("No submissions")) {
+                alert("No data to export!");
+                return;
+            }
+            switchTab('results'); // Ensure UI is updated
+            setTimeout(() => { window.print(); }, 500);
+        }
+
         database.ref('exam_results').on('value', (snapshot) => {
             const data = snapshot.val();
             const listDiv = document.getElementById('studentList');
@@ -199,57 +219,57 @@
 
             for (let id in data) {
                 const student = data[id];
+                let fullDetailsHtml = "";
+
+                if (student.details && Array.isArray(student.details)) {
+                    student.details.forEach((item, index) => {
+                        const isCorrect = item.status;
+                        const statusColor = isCorrect ? "#27ae60" : "#e74c3c";
+                        const bgColor = isCorrect ? "#f0fff4" : "#fff5f5";
+                        
+                        fullDetailsHtml += `
+                            <div style="padding: 12px; margin-top: 10px; border-radius: 6px; background-color: ${bgColor}; border: 1px solid ${statusColor}33;">
+                                <p style="margin-bottom: 5px;"><strong>Q${index + 1}:</strong> ${item.question}</p>
+                                <div style="font-size: 13px; display: flex; gap: 15px;">
+                                    <span>Student Chose: <strong style="color:${statusColor}">${item.userSelection}</strong></span>
+                                    ${!isCorrect ? `<span>Correct: <strong style="color:#27ae60">${item.correctAnswer}</strong></span>` : ''}
+                                </div>
+                            </div>`;
+                    });
+                }
+
                 listDiv.innerHTML += `
-                    <div class="q-card" style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <strong>${student.name}</strong><br>
-                            <small style="color:#888">${student.submittedAt}</small>
+                    <div class="q-card" style="margin-bottom: 30px; border-left: 6px solid var(--accent);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #eee; padding-bottom:15px; margin-bottom:15px;">
+                            <div>
+                                <strong style="font-size: 20px; color: var(--primary);">${student.name}</strong>
+                                <span style="margin-left:10px; background: #3498db; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">TC: ${student.tcNumber || student.Tcnumber || 'N/A'}</span>
+                                <div style="margin-top:5px;">
+                                    <span style="background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: #555;">BATCH: ${student.batch || 'N/A'}</span>
+                                    <small style="color:#888; margin-left: 10px;">Submitted: ${student.submittedAt}</small>
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:22px; font-weight:bold; color:var(--accent);">${student.score}/${student.totalQuestions || '20'}</div>
+                                <div style="font-size:12px; color:#666;">Total Score (${student.percentage || 0}%)</div>
+                            </div>
                         </div>
-                        <div style="text-align:right;">
-                            <span style="font-size:18px; font-weight:bold; color:var(--accent);">${student.score}/20</span><br>
-                            <button class="generate-btn" style="padding:5px 10px; font-size:11px; margin-top:5px; background:var(--btn-gray);" onclick="viewStudentDetails('${id}')">VIEW ANSWERS</button>
+                        <div class="details-section">
+                            <label style="color:var(--primary); font-size: 11px; margin-bottom: 10px; display:block;">QUESTION BREAKDOWN</label>
+                            ${fullDetailsHtml}
                         </div>
                     </div>`;
             }
         });
 
-        // NEW: Clear Performance Logic
         function clearPerformanceData() {
-            if (confirm("CRITICAL ACTION: This will permanently delete ALL student exam results from the database. Are you sure?")) {
+            if (confirm("Permanently delete ALL student exam results?")) {
                 database.ref('exam_results').remove()
-                    .then(() => {
-                        alert("Database cleared successfully.");
-                    })
-                    .catch((error) => {
-                        alert("Error clearing data: " + error.message);
-                    });
+                    .then(() => alert("Database cleared."))
+                    .catch((err) => alert("Error: " + err.message));
             }
         }
 
-        function viewStudentDetails(id) {
-            database.ref('exam_results/' + id).once('value', (snapshot) => {
-                const student = snapshot.val();
-                if(!student) return;
-                
-                let html = `<h2>Response Review: ${student.name}</h2>
-                            <button class="generate-btn" style="background:var(--btn-gray);" onclick="switchTab('results')">Back to List</button><hr style="margin:20px 0;">`;
-                
-                student.details.forEach((item, index) => {
-                    const color = item.status ? "#27ae60" : "#e74c3c";
-                    html += `
-                        <div class="q-card" style="border-left: 6px solid ${color}">
-                            <p><strong>Q${index + 1}:</strong> ${item.question}</p>
-                            <p>Student Chose: <span style="color:${color}; font-weight:bold;">${item.userSelection}</span></p>
-                            ${!item.status ? `<p style="color:#27ae60">Correct Answer: ${item.correctAnswer}</p>` : ''}
-                        </div>`;
-                });
-
-                document.getElementById('questionDisplay').innerHTML = html;
-                switchTab('designer'); 
-            });
-        }
-
-        // --- SIDEBAR LOGIC ---
         const checkboxContainer = document.getElementById("checkboxes");
         for (let i = 0; i <= 50; i++) {
             const label = document.createElement("label");
@@ -264,8 +284,7 @@
             if(sem && semesterData[sem]) {
                 semesterData[sem].forEach(topic => {
                     const opt = document.createElement('option');
-                    opt.value = topic;
-                    opt.innerHTML = topic;
+                    opt.value = topic; opt.innerHTML = topic;
                     topicSelect.appendChild(opt);
                 });
             } else {
@@ -280,34 +299,64 @@
             expanded = !expanded;
         }
 
-        function generateFromBank() {
-            const session = document.getElementById('examSession').value;
+        let selectedQuestions = [];
+        function loadTopicQuestions() {
+            const sem = document.getElementById('semester').value;
             const chapter = document.getElementById('mainTopic').value;
-            const selectedQtys = Array.from(document.querySelectorAll('input[name="qty"]:checked')).map(c => parseInt(c.value));
-            const total = selectedQtys.reduce((a, b) => a + b, 0);
+            if (!chapter || chapter.includes("Select")) return;
 
-            if (!chapter || total === 0) {
-                alert("Please select a Chapter and Quantity!");
-                return;
-            }
+            document.getElementById('currentTopicLabel').innerText = `Select Questions from: ${chapter}`;
+            const display = document.getElementById('questionDisplay');
+            display.innerHTML = `<div style="text-align:center; padding:40px;"><span style="color: #3498db; font-weight: bold;">Loading Bank...</span></div>`;
 
-            document.getElementById('questionDisplay').innerHTML = `
-                <div class="q-card">
-                    <h3>Generating Exam for ${session}</h3>
-                    <p>Chapter: <strong>${chapter}</strong></p>
-                    <p>Total Questions: <strong>${total}</strong></p>
-                    <p style="color:var(--btn-green); margin-top:10px;">Scanning Question Bank...</p>
-                </div>`;
-            switchTab('designer');
+            database.ref('questions/' + sem + '/' + chapter).once('value', (snapshot) => {
+                const questions = snapshot.val();
+                display.innerHTML = ""; 
+                selectedQuestions = [];
+                updateSelectedCounter();
+
+                if (!questions) {
+                    display.innerHTML = `<p style="color:red; text-align:center; padding:20px;">No questions found.</p>`;
+                    return;
+                }
+
+                Object.keys(questions).forEach((key) => {
+                    const q = questions[key];
+                    display.innerHTML += `
+                        <div class="q-card" style="display: flex; justify-content: space-between; align-items: flex-start; border-left: 5px solid #27ae60;">
+                            <div style="flex: 1;">
+                                <p><strong>Q:</strong> ${q.question || q.questionText}</p>
+                                <p style="font-size: 13px; color: #7f8c8d;">${q.optionA} | ${q.optionB} | ${q.optionC} | ${q.optionD}</p>
+                                <p style="color: #27ae60; font-weight: bold;">✓ ${q.answer || q.correctOption}</p>
+                            </div>
+                            <div style="padding-left: 20px;">
+                                <input type="checkbox" style="transform: scale(1.4);" onclick="toggleSelection('${key}', this)">
+                            </div>
+                        </div>`;
+                });
+            });
         }
 
-        document.addEventListener('click', function(e) {
-            const multiselect = document.querySelector('.multiselect');
-            if (multiselect && !multiselect.contains(e.target)) {
-                document.getElementById("checkboxes").style.display = "none";
-                expanded = false;
+        function toggleSelection(id, cb) {
+            if (cb.checked) selectedQuestions.push(id);
+            else selectedQuestions = selectedQuestions.filter(i => i !== id);
+            updateSelectedCounter();
+        }
+
+        function updateSelectedCounter() {
+            const counter = document.getElementById('selectedCount');
+            counter.innerText = `${selectedQuestions.length} Selected`;
+            counter.style.background = selectedQuestions.length > 0 ? "#27ae60" : "#bdc3c7";
+        }
+
+        function generateFromBank() {
+            const chapter = document.getElementById('mainTopic').value;
+            if (!chapter || selectedQuestions.length === 0) {
+                alert("Select Chapter and specific questions first!");
+                return;
             }
-        });
+            alert("Exam generation for " + selectedQuestions.length + " questions initiated.");
+        }
     </script>
 </body>
 </html>
