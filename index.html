@@ -1,8 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+# Strict Shuffling & Logarithm Rule Implementation
+
+Ensure both Batch 61st and 62nd follow a mathematically unbiased shuffling algorithm and adhere to the compulsory Logarithm sub-type rule (1 each of Multiplication, Division, Power, and Root).
+
+## User Review Required
+
+> [!IMPORTANT]
+> To implement the compulsory Logarithm rule for Batch 61st, I will be adding a Logarithm section to their question bank and adjusting their topic distribution (7 Volume, 7 Algebra, 7 Mensuration, 4 Logarithm).
+
+## Proposed Changes
+
+### [Shuffling Algorithm]
+Implement the **Fisher-Yates (Knuth) Shuffle** in a shared utility or local to both scripts. This is the industry standard for "Strict Shuffling."
+
+---
+
+### [Batch 61st]
+
+#### [NEW] [question_bank.js](file:///c:/Siemens%20_CBT/Batch_61st/question_bank.js)
+- Move hardcoded questions from `script.js` to this new standalone file.
+- Add 4 categories of Logarithm questions (Multiplication, Division, Power, Root).
+
+#### [MODIFY] [index.html](file:///c:/Siemens%20_CBT/Batch_61st/index.html)
+- Load `question_bank.js` before `script.js`.
+
+#### [MODIFY] [script.js](file:///c:/Siemens%20_CBT/Batch_61st/script.js)
+- Update `generateQuestionsByLogin` to draw exactly 1 of each Logarithm sub-type.
+- Implement the Fisher-Yates shuffle.
+- Ensure the `localStorage` pool system never repeats a question until the topic pool is completely empty.
+
+---
+
+### [Batch 62nd]
+
+#### [MODIFY] [script.js](file:///c:/Siemens%20_CBT/Batch_62nd/script.js)
+- Upgrade shuffling to Fisher-Yates.
+- Refine the `topicPool` logic to ensure strict no-repeat until the very last question.
+
+## Open Questions
+
+- Should the Logarithm questions for the 61st Batch be the same as the 62nd Batch, or should they be simplified? (I will assume same difficulty unless told otherwise).
+
+## Verification Plan
+
+### Automated Tests
+- Use the browser tool to log in as a test student multiple times and verify that the first 4 questions from the Logarithm pool are always 1 of each sub-type.
+- Check `localStorage` to ensure the pool reduces in size after each draw and only refills when empty.
+
+### Manual Verification
+- Manually run the shuffle function in the console to verify unbiased distribution.
     <title>STA Admin | Full Question Bank Engine</title>
     <style>
         :root {
@@ -14,79 +65,241 @@
             --btn-gray: #7f8c8d;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { display: flex; height: 100vh; background-color: #f4f7f6; overflow: hidden; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #f4f7f6;
+            overflow: hidden;
+        }
 
         /* --- PDF/PRINT OPTIMIZATION --- */
         @media print {
-            .sidebar, .tab-btn, .clear-btn, .export-btn, .generate-btn, .logo, label, select, .no-print, hr { 
-                display: none !important; 
+
+            .sidebar,
+            .tab-btn,
+            .clear-btn,
+            .export-btn,
+            .generate-btn,
+            .logo,
+            label,
+            select,
+            .no-print,
+            hr {
+                display: none !important;
             }
-            .main-content { padding: 0; overflow: visible; width: 100%; position: absolute; left: 0; top: 0; }
-            body { background: white; display: block; }
-            .q-card { 
-                box-shadow: none !important; 
-                border: 1px solid #ddd !important; 
-                page-break-inside: avoid; 
+
+            .main-content {
+                padding: 0;
+                overflow: visible;
+                width: 100%;
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+
+            body {
+                background: white;
+                display: block;
+            }
+
+            .q-card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                page-break-inside: avoid;
                 margin-bottom: 15px;
             }
-            #results-section { display: block !important; }
-            #designer-section { display: none !important; }
-            h1 { font-size: 20px; color: black; }
+
+            #results-section {
+                display: block !important;
+            }
+
+            #designer-section {
+                display: none !important;
+            }
+
+            h1 {
+                font-size: 20px;
+                color: black;
+            }
         }
 
         /* --- SIDEBAR --- */
         .sidebar {
-            width: 320px; background-color: var(--sidebar-bg); color: white;
-            padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
+            width: 320px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
             border-right: 1px solid #3e4f5f;
         }
-        .logo { font-size: 18px; font-weight: bold; color: var(--accent); border-bottom: 1px solid #3e4f5f; padding-bottom: 10px; margin-bottom: 5px; }
-        label { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #bdc3c7; display: block; margin-bottom: 5px; }
+
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--accent);
+            border-bottom: 1px solid #3e4f5f;
+            padding-bottom: 10px;
+            margin-bottom: 5px;
+        }
+
+        label {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #bdc3c7;
+            display: block;
+            margin-bottom: 5px;
+        }
+
         select {
-            width: 100%; padding: 10px; border-radius: 5px; border: none;
-            background-color: #34495e; color: white; outline: none; font-size: 14px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #34495e;
+            color: white;
+            outline: none;
+            font-size: 14px;
         }
 
         /* --- CUSTOM CHECKBOX DROPDOWN --- */
-        .multiselect { width: 100%; position: relative; }
-        .selectBox { position: relative; }
-        .selectBox select { width: 100%; font-weight: bold; cursor: pointer; }
-        .overSelect { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+        .multiselect {
+            width: 100%;
+            position: relative;
+        }
+
+        .selectBox {
+            position: relative;
+        }
+
+        .selectBox select {
+            width: 100%;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .overSelect {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+        }
+
         #checkboxes {
-            display: none; border: 1px solid #3e4f5f; background-color: #34495e;
-            max-height: 180px; overflow-y: auto; border-radius: 0 0 5px 5px;
-            position: absolute; width: 100%; z-index: 10;
+            display: none;
+            border: 1px solid #3e4f5f;
+            background-color: #34495e;
+            max-height: 180px;
+            overflow-y: auto;
+            border-radius: 0 0 5px 5px;
+            position: absolute;
+            width: 100%;
+            z-index: 10;
         }
+
         #checkboxes label {
-            display: block; color: white; padding: 8px; text-transform: none;
-            font-weight: normal; font-size: 13px; cursor: pointer; border-bottom: 1px solid #3e4f5f;
+            display: block;
+            color: white;
+            padding: 8px;
+            text-transform: none;
+            font-weight: normal;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 1px solid #3e4f5f;
         }
-        #checkboxes label:hover { background-color: var(--accent); }
-        #checkboxes input { margin-right: 10px; }
+
+        #checkboxes label:hover {
+            background-color: var(--accent);
+        }
+
+        #checkboxes input {
+            margin-right: 10px;
+        }
 
         .generate-btn {
-            background-color: var(--btn-green); color: white; border: none;
-            padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer;
-            margin-top: 10px; transition: 0.3s;
-        }
-        .clear-btn {
-            background-color: var(--btn-red); color: white; border: none;
-            padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;
-            font-size: 12px; transition: 0.3s;
-        }
-        .export-btn {
-            background-color: var(--accent); color: white; border: none;
-            padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;
-            font-size: 12px; display: inline-flex; align-items: center; gap: 8px;
+            background-color: var(--btn-green);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
         }
 
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .q-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); }
-        .tab-btn { background: #34495e; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px 5px 0 0; font-weight: bold; margin-right: 5px;}
-        .tab-btn.active { background: #f4f7f6; color: var(--primary); border: 1px solid #ddd; border-bottom: none; }
+        .clear-btn {
+            background-color: var(--btn-red);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.3s;
+        }
+
+        .export-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .q-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--accent);
+        }
+
+        .tab-btn {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .tab-btn.active {
+            background: #f4f7f6;
+            color: var(--primary);
+            border: 1px solid #ddd;
+            border-bottom: none;
+        }
     </style>
 </head>
+
 <body>
 
     <aside class="sidebar no-print">
@@ -118,7 +331,9 @@
             <label>Question Quantity (0-50)</label>
             <div class="multiselect">
                 <div class="selectBox" onclick="showCheckboxes()">
-                    <select><option>Select Amount</option></select>
+                    <select>
+                        <option>Select Amount</option>
+                    </select>
                     <div class="overSelect"></div>
                 </div>
                 <div id="checkboxes"></div>
@@ -131,8 +346,9 @@
         <div style="display: flex;" class="no-print">
             <button class="tab-btn active" id="btn-designer" onclick="switchTab('designer')">Examination Designer</button>
             <button class="tab-btn" id="btn-results" onclick="switchTab('results')">Student Performance</button>
+            <button class="tab-btn" id="btn-users" onclick="switchTab('users')">User Management</button>
         </div>
-        
+
         <div id="designer-section" style="background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 15px;">
@@ -151,11 +367,19 @@
         <div id="results-section" style="display: none; background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
             <div class="results-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h1>Live Student Results</h1>
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="results-batch-filter" style="padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;" onchange="updateResultsDisplay()">
+                        <option value="all">All Batches</option>
+                        <option value="61st">61st Batch</option>
+                        <option value="62nd">62nd Batch</option>
+                    </select>
                     <button class="export-btn no-print" onclick="generateFullPDFReport()">
                         <span>📥</span> <b>EXPORT TO PDF</b>
                     </button>
-                    <button class="clear-btn no-print" onclick="clearPerformanceData()">CLEAR ALL RESULTS</button>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="clear-btn no-print" onclick="clearBatchData('61st')" style="background: #e67e22; padding: 10px 10px; font-size: 11px;">CLEAR 61st</button>
+                        <button class="clear-btn no-print" onclick="clearBatchData('62nd')" style="background: #d35400; padding: 10px 10px; font-size: 11px;">CLEAR 62nd</button>
+                    </div>
                 </div>
             </div>
             <hr style="margin: 20px 0; border: 0.5px solid #ddd;" class="no-print">
@@ -163,10 +387,32 @@
                 <p style="color: #888;">No submissions yet...</p>
             </div>
         </div>
+
+        <div id="users-section" style="display: none; background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1 style="font-size: 28px; color: var(--primary);">User Account Management</h1>
+                <button class="clear-btn no-print" onclick="globalReset()" style="font-size: 14px; padding: 12px 24px;">
+                    ⚠️ GLOBAL RESET
+                </button>
+            </div>
+            <hr style="margin-bottom: 20px; border: 0.5px solid #eee;">
+            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <input type="text" id="user-search" placeholder="Search user by Name or TC No..." style="padding: 10px; width: 100%; max-width: 400px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;" onkeyup="filterUsers()">
+                <select id="user-batch-filter" style="padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;" onchange="filterUsers()">
+                    <option value="all">All Batches</option>
+                    <option value="61st">61st Batch</option>
+                    <option value="62nd">62nd Batch</option>
+                </select>
+            </div>
+            <div id="user-management-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                <!-- Populated by JS -->
+            </div>
+        </div>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="students_db.js"></script>
 
     <script>
         const firebaseConfig = {
@@ -189,49 +435,82 @@
             sem4: ["4.1 Number Systems", "4.2 Estimating and Costing", "4.3 Volume and Weight", "4.4 Graph", "4.5 Applied Mathematics - I", "4.6 Applied Mathematics - II", "4.7 Friction", "4.8 Hydrostatics", "4.9 Heat Treatment", "4.10 Statics"]
         };
 
+        // Helper to sanitize names for Firebase paths
+        function getSafeName(name) {
+            return name ? name.replace(/[.#$[\]]/g, "_") : "unknown_user";
+        }
+
         function switchTab(tab) {
             document.getElementById('designer-section').style.display = tab === 'designer' ? 'block' : 'none';
             document.getElementById('results-section').style.display = tab === 'results' ? 'block' : 'none';
+            document.getElementById('users-section').style.display = tab === 'users' ? 'block' : 'none';
+
             document.getElementById('btn-designer').classList.toggle('active', tab === 'designer');
             document.getElementById('btn-results').classList.toggle('active', tab === 'results');
+            document.getElementById('btn-users').classList.toggle('active', tab === 'users');
+
+            if (tab === 'users') renderUsers();
         }
 
-        // FIXED PDF Export Function
         function generateFullPDFReport() {
             const listDiv = document.getElementById('studentList');
             if (listDiv.innerText.includes("No submissions")) {
                 alert("No data to export!");
                 return;
             }
-            switchTab('results'); // Ensure UI is updated
+            switchTab('results');
             setTimeout(() => { window.print(); }, 500);
         }
 
-        database.ref('exam_results').on('value', (snapshot) => {
-            const data = snapshot.val();
+        let cachedResults = null;
+
+        function updateResultsDisplay() {
             const listDiv = document.getElementById('studentList');
+            const batchFilter = document.getElementById('results-batch-filter').value;
             listDiv.innerHTML = "";
 
-            if (!data) {
+            if (!cachedResults) {
                 listDiv.innerHTML = "<p style='color:#888;'>No submissions yet...</p>";
                 return;
             }
 
-            for (let id in data) {
-                const student = data[id];
-                let fullDetailsHtml = "";
+            // Flatten results from batch-wise folders
+            let flatResults = [];
+            
+            // 1. Check if root has 61st/62nd keys
+            ["61st", "62nd"].forEach(b => {
+                if (cachedResults[b]) {
+                    Object.keys(cachedResults[b]).forEach(id => {
+                        flatResults.push({ ...cachedResults[b][id], firebaseId: id });
+                    });
+                }
+            });
 
+            // 2. Fallback for any results already in the root (Migration support)
+            Object.keys(cachedResults).forEach(key => {
+                if (key !== "61st" && key !== "62nd" && cachedResults[key] && cachedResults[key].name) {
+                    flatResults.push({ ...cachedResults[key], firebaseId: key });
+                }
+            });
+
+            let found = false;
+            flatResults.sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt)); // Sort newest first
+
+            flatResults.forEach((student) => {
+                if (batchFilter !== 'all' && student.batch !== batchFilter) return;
+                found = true;
+
+                let fullDetailsHtml = "";
                 if (student.details && Array.isArray(student.details)) {
                     student.details.forEach((item, index) => {
                         const isCorrect = item.status;
                         const statusColor = isCorrect ? "#27ae60" : "#e74c3c";
                         const bgColor = isCorrect ? "#f0fff4" : "#fff5f5";
-                        
                         fullDetailsHtml += `
                             <div style="padding: 12px; margin-top: 10px; border-radius: 6px; background-color: ${bgColor}; border: 1px solid ${statusColor}33;">
                                 <p style="margin-bottom: 5px;"><strong>Q${index + 1}:</strong> ${item.question}</p>
                                 <div style="font-size: 13px; display: flex; gap: 15px;">
-                                    <span>Student Chose: <strong style="color:${statusColor}">${item.userSelection}</strong></span>
+                                    <span>Student: <strong style="color:${statusColor}">${item.userSelection}</strong></span>
                                     ${!isCorrect ? `<span>Correct: <strong style="color:#27ae60">${item.correctAnswer}</strong></span>` : ''}
                                 </div>
                             </div>`;
@@ -243,30 +522,92 @@
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #eee; padding-bottom:15px; margin-bottom:15px;">
                             <div>
                                 <strong style="font-size: 20px; color: var(--primary);">${student.name}</strong>
-                                <span style="margin-left:10px; background: #3498db; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">TC: ${student.tcNumber || student.Tcnumber || 'N/A'}</span>
+                                <span style="margin-left:10px; background: #3498db; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">TC: ${student.tcNumber || 'N/A'}</span>
                                 <div style="margin-top:5px;">
                                     <span style="background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: #555;">BATCH: ${student.batch || 'N/A'}</span>
-                                    <small style="color:#888; margin-left: 10px;">Submitted: ${student.submittedAt}</small>
+                                    <small style="color:#888; margin-left:10px;">Submitted: ${student.submittedAt}</small>
                                 </div>
                             </div>
                             <div style="text-align:right;">
-                                <div style="font-size:22px; font-weight:bold; color:var(--accent);">${student.score}/${student.totalQuestions || '20'}</div>
-                                <div style="font-size:12px; color:#666;">Total Score (${student.percentage || 0}%)</div>
+                                <div style="font-size:22px; font-weight:bold; color:var(--accent);">${student.score}/${student.totalQuestions || '25'}</div>
+                                <div style="font-size:12px; color:#666;">Score (${student.percentage || 0}%)</div>
                             </div>
                         </div>
-                        <div class="details-section">
-                            <label style="color:var(--primary); font-size: 11px; margin-bottom: 10px; display:block;">QUESTION BREAKDOWN</label>
-                            ${fullDetailsHtml}
-                        </div>
+                        <div class="details-section">${fullDetailsHtml}</div>
                     </div>`;
-            }
+            });
+            if (!found) listDiv.innerHTML = "<p style='color:#888;'>No submissions found.</p>";
+        }
+
+        database.ref('exam_results').on('value', snapshot => {
+            cachedResults = snapshot.val();
+            updateResultsDisplay();
         });
 
         function clearPerformanceData() {
             if (confirm("Permanently delete ALL student exam results?")) {
-                database.ref('exam_results').remove()
-                    .then(() => alert("Database cleared."))
-                    .catch((err) => alert("Error: " + err.message));
+                database.ref('exam_results').remove().then(() => alert("Database cleared."));
+            }
+        }
+
+        function clearBatchData(batch) {
+            if (confirm("Permanently delete all exam results for " + batch + " Batch?")) {
+                database.ref('exam_results/' + batch).remove().then(() => {
+                    alert("✅ " + batch + " Batch results have been cleared.");
+                });
+            }
+        }
+
+        function renderUsers() {
+            const listDiv = document.getElementById('user-management-list');
+            listDiv.innerHTML = "";
+            const searchQuery = document.getElementById('user-search').value.toLowerCase();
+            const batchFilter = document.getElementById('user-batch-filter').value;
+
+            students.forEach((s) => {
+                if (!s.name.toLowerCase().includes(searchQuery) && !s.pass.toLowerCase().includes(searchQuery)) return;
+                if (batchFilter !== 'all' && s.batch !== batchFilter) return;
+
+                const cardBox = document.createElement("div");
+                cardBox.style.padding = "15px";
+                cardBox.style.border = "1px solid #ddd";
+                cardBox.style.borderRadius = "8px";
+                cardBox.style.display = "flex";
+                cardBox.style.justifyContent = "space-between";
+                cardBox.style.alignItems = "center";
+                cardBox.style.background = "#fafafa";
+                cardBox.innerHTML = `
+                    <div>
+                        <strong style="color:var(--primary); font-size: 16px;">${s.name}</strong>
+                        <span style="font-size:12px; color:#888; margin-left:10px;">(Pass: ${s.pass})</span>
+                    </div>
+                    <button class="clear-btn" onclick="userReset('${s.name}', '${s.pass}')" style="padding:6px 12px; font-size:12px;">Reset</button>
+                `;
+                listDiv.appendChild(cardBox);
+            });
+        }
+
+        function filterUsers() { renderUsers(); }
+
+        function globalReset() {
+            if (confirm("Reset ALL student accounts?")) {
+                const ts = Date.now();
+                database.ref('account_resets/global').set({ timestamp: ts });
+                database.ref('exam_results').remove();
+                database.ref('student_sessions').remove();
+                alert("Global reset complete.");
+            }
+        }
+
+        async function userReset(studentName, studentPass) {
+            if (confirm("Reset account for " + studentName + "?")) {
+                const safeName = getSafeName(studentName);
+                database.ref('account_resets/users/' + safeName).set({ timestamp: Date.now() });
+                
+                // Clear locked session
+                database.ref('student_sessions/' + safeName).remove();
+
+                console.log("✅ Reset successful for " + studentName + ". Performance records preserved.");
             }
         }
 
@@ -281,7 +622,7 @@
             const sem = document.getElementById('semester').value;
             const topicSelect = document.getElementById('mainTopic');
             topicSelect.innerHTML = "";
-            if(sem && semesterData[sem]) {
+            if (sem && semesterData[sem]) {
                 semesterData[sem].forEach(topic => {
                     const opt = document.createElement('option');
                     opt.value = topic; opt.innerHTML = topic;
@@ -305,33 +646,27 @@
             const chapter = document.getElementById('mainTopic').value;
             if (!chapter || chapter.includes("Select")) return;
 
-            document.getElementById('currentTopicLabel').innerText = `Select Questions from: ${chapter}`;
+            document.getElementById('currentTopicLabel').innerText = `Select: ${chapter}`;
             const display = document.getElementById('questionDisplay');
-            display.innerHTML = `<div style="text-align:center; padding:40px;"><span style="color: #3498db; font-weight: bold;">Loading Bank...</span></div>`;
+            display.innerHTML = `<div style="text-align:center; padding:40px;">Loading...</div>`;
 
             database.ref('questions/' + sem + '/' + chapter).once('value', (snapshot) => {
                 const questions = snapshot.val();
-                display.innerHTML = ""; 
+                display.innerHTML = "";
                 selectedQuestions = [];
-                updateSelectedCounter();
-
                 if (!questions) {
-                    display.innerHTML = `<p style="color:red; text-align:center; padding:20px;">No questions found.</p>`;
+                    display.innerHTML = `<p style="color:red; text-align:center;">No questions found.</p>`;
                     return;
                 }
-
                 Object.keys(questions).forEach((key) => {
                     const q = questions[key];
                     display.innerHTML += `
-                        <div class="q-card" style="display: flex; justify-content: space-between; align-items: flex-start; border-left: 5px solid #27ae60;">
-                            <div style="flex: 1;">
+                        <div class="q-card" style="display:flex; justify-content:space-between; border-left:5px solid #27ae60;">
+                            <div>
                                 <p><strong>Q:</strong> ${q.question || q.questionText}</p>
-                                <p style="font-size: 13px; color: #7f8c8d;">${q.optionA} | ${q.optionB} | ${q.optionC} | ${q.optionD}</p>
-                                <p style="color: #27ae60; font-weight: bold;">✓ ${q.answer || q.correctOption}</p>
+                                <p style="color:#27ae60; font-weight:bold;">✓ ${q.answer || q.correctOption}</p>
                             </div>
-                            <div style="padding-left: 20px;">
-                                <input type="checkbox" style="transform: scale(1.4);" onclick="toggleSelection('${key}', this)">
-                            </div>
+                            <input type="checkbox" onclick="toggleSelection('${key}', this)">
                         </div>`;
                 });
             });
@@ -340,22 +675,12 @@
         function toggleSelection(id, cb) {
             if (cb.checked) selectedQuestions.push(id);
             else selectedQuestions = selectedQuestions.filter(i => i !== id);
-            updateSelectedCounter();
-        }
-
-        function updateSelectedCounter() {
-            const counter = document.getElementById('selectedCount');
-            counter.innerText = `${selectedQuestions.length} Selected`;
-            counter.style.background = selectedQuestions.length > 0 ? "#27ae60" : "#bdc3c7";
+            document.getElementById('selectedCount').innerText = `${selectedQuestions.length} Selected`;
         }
 
         function generateFromBank() {
-            const chapter = document.getElementById('mainTopic').value;
-            if (!chapter || selectedQuestions.length === 0) {
-                alert("Select Chapter and specific questions first!");
-                return;
-            }
-            alert("Exam generation for " + selectedQuestions.length + " questions initiated.");
+            if (selectedQuestions.length === 0) { alert("Select questions first!"); return; }
+            alert("Exam generated for " + selectedQuestions.length + " questions.");
         }
     </script>
 </body>
