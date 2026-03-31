@@ -6,236 +6,154 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STA Admin | Full Question Bank Engine</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
         :root {
-            --primary: #1a252f;
-            --accent: #3498db;
-            --sidebar-bg: #2c3e50;
-            --btn-green: #27ae60;
-            --btn-red: #e74c3c;
-            --btn-gray: #7f8c8d;
+            --primary: #000028; /* Siemens Deep Blue */
+            --accent: #009999; /* Siemens Petrol */
+            --sidebar-bg: linear-gradient(180deg, #000028 0%, #001230 100%);
+            --btn-green: #009999;
+            --btn-red: #E8233C;
+            --btn-gray: #666666;
+            --bg-light: #F4F7F6;
+            --shadow-soft: 0 4px 12px rgba(0,0,0,0.03);
+            --shadow-float: 0 8px 24px rgba(0,0,0,0.08);
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
             display: flex;
             min-height: 100vh;
             height: 100%;
-            background-color: #f4f7f6;
+            background-color: var(--bg-light);
             overflow: auto;
+            color: #333;
         }
 
-        /* --- MOBILE RESPONSIVE --- */
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-                height: auto;
-                overflow: auto;
-            }
-            .sidebar {
-                width: 100% !important;
-                max-height: none !important;
-                overflow-y: visible;
-                border-right: none !important;
-                border-bottom: 2px solid #3e4f5f;
-                padding: 14px 14px;
-                flex-direction: row;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-            .logo {
-                width: 100%;
-            }
-            .main-content {
-                overflow-y: auto !important;
-                width: 100% !important;
-                padding: 14px !important;
-            }
-            .tab-btn {
-                font-size: 12px !important;
-                padding: 8px 10px !important;
-            }
-            table {
-                font-size: 12px;
-            }
-            th, td {
-                padding: 8px 6px !important;
-            }
-            .result-card {
-                padding: 12px !important;
-            }
-            .generate-btn, .clear-btn, .export-btn {
-                width: 100% !important;
-                text-align: center;
-            }
-            select, input {
-                font-size: 14px !important;
-            }
-        }
-
-        /* --- PDF/PRINT OPTIMIZATION --- */
-        @media print {
-
-            .sidebar,
-            .tab-btn,
-            .clear-btn,
-            .export-btn,
-            .generate-btn,
-            .logo,
-            label,
-            select,
-            .no-print,
-            hr {
-                display: none !important;
-            }
-
-            .main-content {
-                padding: 0;
-                overflow: visible;
-                width: 100%;
-                position: absolute;
-                left: 0;
-                top: 0;
-            }
-
-            body {
-                background: white;
-                display: block;
-            }
-
-            .q-card {
-                box-shadow: none !important;
-                border: 1px solid #ddd !important;
-                page-break-inside: avoid;
-                margin-bottom: 15px;
-            }
-
-            #results-section {
-                display: block !important;
-            }
-
-            #designer-section {
-                display: none !important;
-            }
-
-            h1 {
-                font-size: 20px;
-                color: black;
-            }
-        }
+        /* --- CUSTOM SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         /* --- SIDEBAR --- */
         .sidebar {
             width: 320px;
-            background-color: var(--sidebar-bg);
+            background: var(--sidebar-bg);
             color: white;
-            padding: 20px;
+            padding: 30px 25px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            border-right: 1px solid #3e4f5f;
+            gap: 20px;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.05);
+            z-index: 10;
+            border-right: none;
         }
 
         .logo {
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 20px;
+            font-weight: 700;
             color: var(--accent);
-            border-bottom: 1px solid #3e4f5f;
-            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0, 153, 153, 0.3);
+            padding-bottom: 15px;
             margin-bottom: 5px;
+            letter-spacing: 0.5px;
         }
 
         label {
-            font-size: 10px;
-            font-weight: bold;
+            font-size: 11px;
+            font-weight: 600;
             text-transform: uppercase;
-            color: #bdc3c7;
+            color: #94a3b8;
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
         }
 
-        select {
+        select, input[type="text"], input[type="number"] {
             width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            background-color: #34495e;
-            color: white;
+            padding: 12px 14px;
+            border-radius: var(--border-radius-sm);
+            border: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            color: #1e293b;
             outline: none;
             font-size: 14px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        select:focus, input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 153, 153, 0.15);
         }
 
         /* --- CUSTOM CHECKBOX DROPDOWN --- */
-        .multiselect {
-            width: 100%;
-            position: relative;
-        }
-
-        .selectBox {
-            position: relative;
-        }
-
-        .selectBox select {
-            width: 100%;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .overSelect {
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0;
-        }
+        .multiselect { width: 100%; position: relative; }
+        .selectBox { position: relative; }
+        .selectBox select { width: 100%; font-weight: 600; cursor: pointer; color: #64748b;}
+        .overSelect { position: absolute; left: 0; right: 0; top: 0; bottom: 0; cursor:pointer;}
 
         #checkboxes {
             display: none;
-            border: 1px solid #3e4f5f;
-            background-color: #34495e;
-            max-height: 180px;
+            border: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            max-height: 200px;
             overflow-y: auto;
-            border-radius: 0 0 5px 5px;
+            border-radius: var(--border-radius-sm);
             position: absolute;
             width: 100%;
-            z-index: 10;
+            z-index: 20;
+            box-shadow: var(--shadow-float);
+            margin-top: 5px;
         }
-
         #checkboxes label {
             display: block;
-            color: white;
-            padding: 8px;
+            color: #1e293b;
+            padding: 10px 14px;
             text-transform: none;
-            font-weight: normal;
+            font-weight: 500;
             font-size: 13px;
             cursor: pointer;
-            border-bottom: 1px solid #3e4f5f;
+            border-bottom: 1px solid #f1f5f9;
+            margin: 0;
+            transition: background 0.2s;
         }
-
         #checkboxes label:hover {
-            background-color: var(--accent);
+            background-color: #f8fafc;
+            color: var(--accent);
         }
-
-        #checkboxes input {
-            margin-right: 10px;
-        }
+        #checkboxes input { margin-right: 12px; accent-color: var(--accent); }
 
         .generate-btn {
-            background-color: var(--btn-green);
+            background-color: var(--accent);
             color: white;
             border: none;
-            padding: 15px;
-            border-radius: 5px;
-            font-weight: bold;
+            padding: 16px;
+            border-radius: var(--border-radius-sm);
+            font-weight: 700;
+            font-size: 14px;
             cursor: pointer;
-            margin-top: 10px;
-            transition: 0.3s;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 153, 153, 0.3);
+            letter-spacing: 0.5px;
+        }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 153, 153, 0.4);
+            background-color: #008080;
         }
 
         .clear-btn {
@@ -243,11 +161,16 @@
             color: white;
             border: none;
             padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
+            border-radius: var(--border-radius-sm);
+            font-weight: 600;
             cursor: pointer;
-            font-size: 12px;
-            transition: 0.3s;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(232, 35, 60, 0.3);
+        }
+        .clear-btn:hover {
+            background-color: #c71b30;
+            transform: translateY(-1px);
         }
 
         .export-btn {
@@ -255,47 +178,131 @@
             color: white;
             border: none;
             padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
+            border-radius: var(--border-radius-sm);
+            font-weight: 600;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0, 153, 153, 0.3);
+        }
+        .export-btn:hover {
+            background-color: #008080;
+            transform: translateY(-1px);
         }
 
         .main-content {
             flex: 1;
-            padding: 40px;
+            padding: 40px 50px;
             overflow-y: auto;
+            position: relative;
         }
 
         .q-card {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            border-left: 4px solid var(--accent);
+            padding: 24px;
+            border-radius: var(--border-radius);
+            margin-bottom: 18px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid #f1f5f9;
+            border-left: 5px solid var(--accent);
+            transition: all 0.3s ease;
+        }
+        .q-card:hover {
+            box-shadow: var(--shadow-float);
+            transform: translateY(-3px);
+            border-color: #e2e8f0;
         }
 
         .tab-btn {
-            background: #34495e;
-            color: white;
+            background: transparent;
+            color: #64748b;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             cursor: pointer;
-            border-radius: 5px 5px 0 0;
-            font-weight: bold;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            font-weight: 600;
+            font-size: 14px;
             margin-right: 5px;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn:hover {
+            color: var(--primary);
+            background: rgba(0,0,0,0.02);
+        }
+        .tab-btn.active {
+            background: transparent;
+            color: var(--accent);
+            border-bottom: 3px solid var(--accent);
+        }
+        
+        .section-container {
+            background: white;
+            padding: 30px;
+            border-radius: 0 var(--border-radius) var(--border-radius) var(--border-radius);
+            box-shadow: var(--shadow-soft);
+            border: 1px solid #f1f5f9;
         }
 
-        .tab-btn.active {
-            background: #f4f7f6;
-            color: var(--primary);
-            border: 1px solid #ddd;
-            border-bottom: none;
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow: auto; }
+            .sidebar {
+                width: 100% !important;
+                max-height: none !important;
+                border-right: none !important;
+                padding: 15px;
+                gap: 12px;
+            }
+            .logo { width: 100%; border-bottom:none; margin-bottom:0;}
+            .main-content { padding: 20px !important; width: 100% !important; }
+            .tab-btn { font-size: 12px !important; padding: 10px !important; flex: 1; text-align: center;}
+            .section-container { border-radius: var(--border-radius); }
         }
+
+        /* --- PDF/PRINT OPTIMIZATION --- */
+        @media print {
+            .sidebar, .tab-btn, .clear-btn, .export-btn, .generate-btn, .logo, label, select, .no-print, hr { display: none !important; }
+            .main-content { padding: 0; overflow: visible; width: 100%; position: absolute; left: 0; top: 0; }
+            body { background: white; display: block; }
+            .q-card { box-shadow: none !important; border: 1px solid #ddd !important; page-break-inside: avoid; margin-bottom: 15px; }
+            #results-section { display: block !important; }
+            #designer-section, #users-section, #activation-section { display: none !important; }
+            h1 { font-size: 20px; color: black; }
+        }
+
+        /* --- TOAST NOTIFICATIONS --- */
+        #toastNotification {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 30px;
+            font-size: 14px;
+            box-shadow: var(--shadow-float);
+        }
+        #toastNotification.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        #toastNotification.success { background-color: var(--accent); }
+        #toastNotification.error { background-color: var(--btn-red); }
+
+        @-webkit-keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @-webkit-keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
     </style>
 </head>
 
@@ -308,6 +315,8 @@
             <select id="examSession">
                 <option value="61st EA">61st EA</option>
                 <option value="61st EB">61st EB</option>
+                <option value="62nd EA">62nd EA</option>
+                <option value="62nd EB">62nd EB</option>
             </select>
         </div>
         <div>
@@ -346,16 +355,28 @@
             <button class="tab-btn active" id="btn-designer" onclick="switchTab('designer')">Examination Designer</button>
             <button class="tab-btn" id="btn-results" onclick="switchTab('results')">Student Performance</button>
             <button class="tab-btn" id="btn-users" onclick="switchTab('users')">User Management</button>
+            <button class="tab-btn" id="btn-activation" onclick="switchTab('activation')">Exam Activation</button>
         </div>
 
-        <div id="designer-section" style="background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
+        <div id="designer-section" class="section-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <h1 style="font-size: 28px; color: var(--primary);">Question Explorer</h1>
                     <span id="selectedCount" style="background: #bdc3c7; color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: bold;">0 Selected</span>
                 </div>
-                <button class="no-print" onclick="loadTopicQuestions()" style="background-color: #34495e; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px;">Load Questions</button>
+                <button class="no-print" onclick="loadTopicQuestions()" style="background-color: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px;">Load Questions</button>
             </div>
+
+            <div id="question-actions" style="display: none; background: #fff; padding: 15px; border-radius: 8px; box-shadow: var(--shadow-soft); margin-bottom: 20px; border-left: 5px solid var(--accent); gap: 10px; align-items: center; flex-wrap: wrap;" class="no-print">
+                <input type="text" id="q-search" placeholder="Search questions..." onkeyup="filterQuestions()" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                <label style="margin: 0; display: flex; align-items: center; gap: 8px; font-weight: bold; cursor: pointer; font-size: 14px; color: var(--primary);">
+                    <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)" style="width: auto; height: 16px;"> Select All
+                </label>
+                <div style="flex: 1; min-width: 20px;"></div>
+                <button onclick="generateExamSet()" style="background: #e67e22; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; box-shadow: 0 2px 4px rgba(230, 126, 34, 0.3);">📝 GENERATE EXAM</button>
+                <button onclick="assignAsAssignment()" style="background: #9b59b6; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; box-shadow: 0 2px 4px rgba(155, 89, 182, 0.3);">📚 ASSIGN HOMEWORK</button>
+            </div>
+
             <p id="currentTopicLabel" style="color: #555; font-weight: bold; margin-bottom: 15px;">Select Questions from: None</p>
             <hr style="margin-bottom: 20px; border: 0.5px solid #eee;">
             <div id="questionDisplay">
@@ -363,22 +384,24 @@
             </div>
         </div>
 
-        <div id="results-section" style="display: none; background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
-            <div class="results-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div id="results-section" class="section-container" style="display: none;">
+            <div class="results-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                 <h1>Live Student Results</h1>
-                <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <select id="results-batch-filter" style="padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;" onchange="updateResultsDisplay()">
                         <option value="all">All Batches</option>
                         <option value="61st">61st Batch</option>
                         <option value="62nd">62nd Batch</option>
                     </select>
+                    <select id="results-division-filter" style="padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;" onchange="updateResultsDisplay()">
+                        <option value="all">All Divisions</option>
+                        <option value="EA">Division EA</option>
+                        <option value="EB">Division EB</option>
+                    </select>
                     <button class="export-btn no-print" onclick="generateFullPDFReport()">
                         <span>📥</span> <b>EXPORT TO PDF</b>
                     </button>
-                    <div style="display: flex; gap: 5px;">
-                        <button class="clear-btn no-print" onclick="clearBatchData('61st')" style="background: #e67e22; padding: 10px 10px; font-size: 11px;">CLEAR 61st</button>
-                        <button class="clear-btn no-print" onclick="clearBatchData('62nd')" style="background: #d35400; padding: 10px 10px; font-size: 11px;">CLEAR 62nd</button>
-                    </div>
+                    <button class="clear-btn no-print" onclick="clearAllData()">CLEAR ALL</button>
                 </div>
             </div>
             <hr style="margin: 20px 0; border: 0.5px solid #ddd;" class="no-print">
@@ -387,30 +410,84 @@
             </div>
         </div>
 
-        <div id="users-section" style="display: none; background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
+        <div id="users-section" class="section-container" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h1 style="font-size: 28px; color: var(--primary);">User Account Management</h1>
-                <button class="clear-btn no-print" onclick="globalReset()" style="font-size: 14px; padding: 12px 24px;">
-                    ⚠️ GLOBAL RESET
-                </button>
+                <button class="clear-btn no-print" onclick="globalReset()" style="font-size: 14px; padding: 12px 24px;">⚠️ GLOBAL RESET</button>
             </div>
-            <hr style="margin-bottom: 20px; border: 0.5px solid #eee;">
-            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
-                <input type="text" id="user-search" placeholder="Search user by Name or TC No..." style="padding: 10px; width: 100%; max-width: 400px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;" onkeyup="filterUsers()">
+            <hr style="margin-bottom: 12px; border: 0.5px solid #eee;">
+            <p style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #888; margin-bottom: 10px;">Division-Wise Reset</p>
+            <div style="display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 16px;" class="no-print">
+                <button onclick="divisionReset('61st','EA')" style="padding:10px; border:none; border-radius:6px; background:var(--accent); color:white; font-weight:bold; font-size:13px; cursor:pointer;">🔄 Reset 61st EA</button>
+                <button onclick="divisionReset('61st','EB')" style="padding:10px; border:none; border-radius:6px; background:var(--accent); color:white; font-weight:bold; font-size:13px; cursor:pointer;">🔄 Reset 61st EB</button>
+                <button onclick="divisionReset('62nd','EA')" style="padding:10px; border:none; border-radius:6px; background:var(--accent); color:white; font-weight:bold; font-size:13px; cursor:pointer;">🔄 Reset 62nd EA</button>
+                <button onclick="divisionReset('62nd','EB')" style="padding:10px; border:none; border-radius:6px; background:var(--accent); color:white; font-weight:bold; font-size:13px; cursor:pointer;">🔄 Reset 62nd EB</button>
+            </div>
+            <hr style="margin-bottom: 14px; border: 0.5px solid #eee;">
+            <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="user-search" placeholder="Search user by Name or TC No..." style="padding: 10px; width: 100%; max-width: 300px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;" onkeyup="filterUsers()">
                 <select id="user-batch-filter" style="padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;" onchange="filterUsers()">
                     <option value="all">All Batches</option>
                     <option value="61st">61st Batch</option>
                     <option value="62nd">62nd Batch</option>
+                </select>
+                <select id="user-division-filter" style="padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;" onchange="filterUsers()">
+                    <option value="all">All Divisions</option>
+                    <option value="EA">Division EA</option>
+                    <option value="EB">Division EB</option>
                 </select>
             </div>
             <div id="user-management-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
                 <!-- Populated by JS -->
             </div>
         </div>
+
+        <!-- EXAM ACTIVATION SECTION -->
+        <div id="activation-section" class="section-container" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h1 style="font-size: 28px; color: var(--primary);">Division-Wise Exam Activation</h1>
+                <span style="font-size: 12px; color: #888;">Changes take effect immediately</span>
+            </div>
+            <hr style="margin-bottom: 20px; border: 0.5px solid #eee;">
+            <div style="background:white; border:1px solid #ddd; border-radius:8px; padding:20px; margin-bottom:18px;">
+                <h2 style="font-size:16px; color:var(--primary); margin-bottom:16px;">📚 61st Batch</h2>
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
+                    <div id="card-61st-EA" style="border:2px solid #ddd; border-radius:8px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; background:#fafafa;">
+                        <div><div style="font-size:15px; font-weight:bold;">61st EA</div><div id="status-61st-EA" style="font-size:11px; font-weight:bold; color:#999; text-transform:uppercase;">● Checking...</div></div>
+                        <button id="btn-61st-EA" onclick="toggleExamActivation('61st','EA')" style="border:none; border-radius:20px; padding:7px 16px; font-size:12px; font-weight:bold; cursor:pointer;">...</button>
+                    </div>
+                    <div id="card-61st-EB" style="border:2px solid #ddd; border-radius:8px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; background:#fafafa;">
+                        <div><div style="font-size:15px; font-weight:bold;">61st EB</div><div id="status-61st-EB" style="font-size:11px; font-weight:bold; color:#999; text-transform:uppercase;">● Checking...</div></div>
+                        <button id="btn-61st-EB" onclick="toggleExamActivation('61st','EB')" style="border:none; border-radius:20px; padding:7px 16px; font-size:12px; font-weight:bold; cursor:pointer;">...</button>
+                    </div>
+                </div>
+            </div>
+            <div style="background:white; border:1px solid #ddd; border-radius:8px; padding:20px; margin-bottom:18px;">
+                <h2 style="font-size:16px; color:var(--primary); margin-bottom:16px;">📚 62nd Batch</h2>
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
+                    <div id="card-62nd-EA" style="border:2px solid #ddd; border-radius:8px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; background:#fafafa;">
+                        <div><div style="font-size:15px; font-weight:bold;">62nd EA</div><div id="status-62nd-EA" style="font-size:11px; font-weight:bold; color:#999; text-transform:uppercase;">● Checking...</div></div>
+                        <button id="btn-62nd-EA" onclick="toggleExamActivation('62nd','EA')" style="border:none; border-radius:20px; padding:7px 16px; font-size:12px; font-weight:bold; cursor:pointer;">...</button>
+                    </div>
+                    <div id="card-62nd-EB" style="border:2px solid #ddd; border-radius:8px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; background:#fafafa;">
+                        <div><div style="font-size:15px; font-weight:bold;">62nd EB</div><div id="status-62nd-EB" style="font-size:11px; font-weight:bold; color:#999; text-transform:uppercase;">● Checking...</div></div>
+                        <button id="btn-62nd-EB" onclick="toggleExamActivation('62nd','EB')" style="border:none; border-radius:20px; padding:7px 16px; font-size:12px; font-weight:bold; cursor:pointer;">...</button>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top:20px;">
+                <p style="font-size:11px; font-weight:bold; text-transform:uppercase; color:#888; margin-bottom:10px;">Activation Log</p>
+                <div id="activation-log" style="font-size:13px; color:#555; line-height:1.8; background:#f9f9f9; border:1px solid #eee; border-radius:6px; padding:12px; min-height:60px;">Loading log...</div>
+            </div>
+        </div>
     </main>
+
+    <!-- Toast Notification Element -->
+    <div id="toastNotification">Notification</div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="students_db.js"></script>
 
     <script>
@@ -426,6 +503,17 @@
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const firestoreDb = firebase.firestore();
+
+        const dbMap = {
+            "1.1 Unit and Measurements": "units",
+            "1.2 Fraction & Decimal": "fraction",
+            "1.3 Square Root": "squareroot",
+            "2.1 Algebra": "algebra",
+            "2.2 Mensuration": "mensuration",
+            "2.3 Volume and Weight": "volume",
+            "logarithms": "logarithms"
+        };
 
         const semesterData = {
             sem1: ["1.1 Unit and Measurements", "1.2 Fraction & Decimal", "1.3 Square Root", "1.4 Ratio & Proportion", "1.5 Percentage", "1.6 Material Science", "1.7 Mass, Weight & Density", "1.8 Speed and Velocity", "1.9 Work, Power and Energy"],
@@ -439,16 +527,64 @@
             return name ? name.replace(/[.#$[\]]/g, "_") : "unknown_user";
         }
 
+        const DIVISIONS = [
+            { batch: '61st', division: 'EA' }, { batch: '61st', division: 'EB' },
+            { batch: '62nd', division: 'EA' }, { batch: '62nd', division: 'EB' }
+        ];
+
+        DIVISIONS.forEach(({ batch, division }) => {
+            database.ref('exam_activation/' + batch + '_' + division).on('value', snap => {
+                const isActive = snap.val() && snap.val().active === true;
+                const key = batch + '-' + division;
+                const card = document.getElementById('card-' + key);
+                const status = document.getElementById('status-' + key);
+                const btn = document.getElementById('btn-' + key);
+                if (!card) return;
+                if (isActive) {
+                    card.style.borderColor = 'var(--accent)'; card.style.background = '#e6f2f2';
+                    status.textContent = '● ACTIVE'; status.style.color = 'var(--accent)';
+                    btn.textContent = 'Deactivate'; btn.style.background = 'var(--btn-red)'; btn.style.color = 'white';
+                } else {
+                    card.style.borderColor = '#ddd'; card.style.background = '#fafafa';
+                    status.textContent = '● Not Active'; status.style.color = '#999';
+                    btn.textContent = 'Activate'; btn.style.background = 'var(--accent)'; btn.style.color = 'white';
+                }
+            });
+        });
+
+        function toggleExamActivation(batch, division) {
+            const key = batch + '_' + division;
+            database.ref('exam_activation/' + key).once('value', snap => {
+                const current = snap.val() && snap.val().active === true;
+                if (!confirm('Are you sure you want to ' + (current ? 'DEACTIVATE' : 'ACTIVATE') + ' exam for ' + batch + ' ' + division + '?')) return;
+                database.ref('exam_activation/' + key).set({ active: !current, updatedAt: new Date().toLocaleString() });
+                database.ref('admin_logs').push({ action: (current ? 'DEACTIVATE' : 'ACTIVATE') + ' Exam', target: batch + ' ' + division, timestamp: new Date().toLocaleString() });
+            });
+        }
+
+        function renderActivationLog() {
+            database.ref('admin_logs').limitToLast(20).once('value', snap => {
+                const logs = snap.val();
+                const logDiv = document.getElementById('activation-log');
+                if (!logs) { logDiv.innerHTML = 'No recent actions.'; return; }
+                let html = '';
+                Object.keys(logs).reverse().forEach(k => {
+                    const log = logs[k];
+                    if (log.action && (log.action.includes('ACTIVATE') || log.action.includes('Reset'))) {
+                        html += '<div style="border-bottom:1px solid #eee;padding:6px 0;"><strong>' + log.action + '</strong> — ' + log.target + '<span style="color:#aaa;margin-left:10px;font-size:11px;">' + log.timestamp + '</span></div>';
+                    }
+                });
+                logDiv.innerHTML = html || 'No activation/reset logs yet.';
+            });
+        }
+
         function switchTab(tab) {
-            document.getElementById('designer-section').style.display = tab === 'designer' ? 'block' : 'none';
-            document.getElementById('results-section').style.display = tab === 'results' ? 'block' : 'none';
-            document.getElementById('users-section').style.display = tab === 'users' ? 'block' : 'none';
-
-            document.getElementById('btn-designer').classList.toggle('active', tab === 'designer');
-            document.getElementById('btn-results').classList.toggle('active', tab === 'results');
-            document.getElementById('btn-users').classList.toggle('active', tab === 'users');
-
+            ['designer','results','users','activation'].forEach(t => {
+                document.getElementById(t + '-section').style.display = (t === tab) ? 'block' : 'none';
+                document.getElementById('btn-' + t).classList.toggle('active', t === tab);
+            });
             if (tab === 'users') renderUsers();
+            if (tab === 'activation') renderActivationLog();
         }
 
         function generateFullPDFReport() {
@@ -466,37 +602,33 @@
         function updateResultsDisplay() {
             const listDiv = document.getElementById('studentList');
             const batchFilter = document.getElementById('results-batch-filter').value;
-            listDiv.innerHTML = "";
+            const divisionFilter = document.getElementById('results-division-filter').value;
+            listDiv.innerHTML = '';
 
             if (!cachedResults) {
                 listDiv.innerHTML = "<p style='color:#888;'>No submissions yet...</p>";
                 return;
             }
 
-            // Flatten results from batch-wise folders
+            // Flatten all results (support both flat root and nested 61st/62nd paths)
             let flatResults = [];
-            
-            // 1. Check if root has 61st/62nd keys
-            ["61st", "62nd"].forEach(b => {
-                if (cachedResults[b]) {
-                    Object.keys(cachedResults[b]).forEach(id => {
-                        flatResults.push({ ...cachedResults[b][id], firebaseId: id });
-                    });
+            ['61st','62nd'].forEach(b => {
+                if (cachedResults[b] && typeof cachedResults[b] === 'object') {
+                    Object.keys(cachedResults[b]).forEach(id => flatResults.push({ ...cachedResults[b][id], firebaseId: id }));
                 }
             });
-
-            // 2. Fallback for any results already in the root (Migration support)
             Object.keys(cachedResults).forEach(key => {
-                if (key !== "61st" && key !== "62nd" && cachedResults[key] && cachedResults[key].name) {
+                if (key !== '61st' && key !== '62nd' && cachedResults[key] && cachedResults[key].name) {
                     flatResults.push({ ...cachedResults[key], firebaseId: key });
                 }
             });
 
+            flatResults.sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
             let found = false;
-            flatResults.sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt)); // Sort newest first
 
             flatResults.forEach((student) => {
                 if (batchFilter !== 'all' && student.batch !== batchFilter) return;
+                if (divisionFilter !== 'all' && student.division !== divisionFilter) return;
                 found = true;
 
                 let fullDetailsHtml = "";
@@ -516,6 +648,9 @@
                     });
                 }
 
+                const divBadge = student.division
+                    ? `<span style="font-size:11px;font-weight:bold;padding:2px 8px;border-radius:4px;margin-left:6px;color:white;background:${student.division==='EA'?'#8e44ad':'#16a085'}">${student.division}</span>`
+                    : '';
                 listDiv.innerHTML += `
                     <div class="q-card" style="margin-bottom: 30px; border-left: 6px solid var(--accent);">
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #eee; padding-bottom:15px; margin-bottom:15px;">
@@ -524,6 +659,7 @@
                                 <span style="margin-left:10px; background: #3498db; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">TC: ${student.tcNumber || 'N/A'}</span>
                                 <div style="margin-top:5px;">
                                     <span style="background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: #555;">BATCH: ${student.batch || 'N/A'}</span>
+                                    ${divBadge}
                                     <small style="color:#888; margin-left:10px;">Submitted: ${student.submittedAt}</small>
                                 </div>
                             </div>
@@ -543,45 +679,56 @@
             updateResultsDisplay();
         });
 
-        function clearPerformanceData() {
+        function clearAllData() {
             if (confirm("Permanently delete ALL student exam results?")) {
                 database.ref('exam_results').remove().then(() => alert("Database cleared."));
             }
         }
 
-        function clearBatchData(batch) {
-            if (confirm("Permanently delete all exam results for " + batch + " Batch?")) {
-                database.ref('exam_results/' + batch).remove().then(() => {
-                    alert("✅ " + batch + " Batch results have been cleared.");
+        function divisionReset(batch, division) {
+            const label = batch + ' ' + division;
+            if (!confirm('⚠️ Reset ALL students in ' + label + '?\n\nThis will clear exam attempts, scores, and sessions.\nOther divisions will NOT be affected.')) return;
+            const ts = Date.now();
+            const divStudents = students.filter(s => s.batch === batch && s.division === division);
+            divStudents.forEach(s => {
+                const uid = s.name + '_' + s.pass;
+                const safeName = s.name.replace(/[.#$[\]]/g, '_');
+                database.ref('account_resets/users/' + uid).set({ timestamp: ts });
+                database.ref('student_sessions/' + safeName).remove();
+                database.ref('exam_results').orderByChild('name').equalTo(s.name).once('value', snap => {
+                    if (snap.val()) Object.keys(snap.val()).forEach(k => database.ref('exam_results/' + k).remove());
                 });
-            }
+            });
+            database.ref('admin_logs').push({ action: 'Division Reset', target: label, count: divStudents.length, timestamp: new Date().toLocaleString() });
+            alert('✅ Division Reset complete for ' + label + '.\n' + divStudents.length + ' student accounts cleared.');
         }
 
         function renderUsers() {
             const listDiv = document.getElementById('user-management-list');
-            listDiv.innerHTML = "";
+            listDiv.innerHTML = '';
             const searchQuery = document.getElementById('user-search').value.toLowerCase();
             const batchFilter = document.getElementById('user-batch-filter').value;
+            const divisionFilter = document.getElementById('user-division-filter').value;
 
-            students.forEach((s) => {
+            students.forEach(s => {
                 if (!s.name.toLowerCase().includes(searchQuery) && !s.pass.toLowerCase().includes(searchQuery)) return;
                 if (batchFilter !== 'all' && s.batch !== batchFilter) return;
+                if (divisionFilter !== 'all' && s.division !== divisionFilter) return;
 
-                const cardBox = document.createElement("div");
-                cardBox.style.padding = "15px";
-                cardBox.style.border = "1px solid #ddd";
-                cardBox.style.borderRadius = "8px";
-                cardBox.style.display = "flex";
-                cardBox.style.justifyContent = "space-between";
-                cardBox.style.alignItems = "center";
-                cardBox.style.background = "#fafafa";
+                const batchBg = s.batch === '61st' ? '#2980b9' : '#c0392b';
+                const divBg = s.division === 'EA' ? '#8e44ad' : '#16a085';
+                const cardBox = document.createElement('div');
+                cardBox.style.cssText = 'padding:15px; border:1px solid #ddd; border-radius:8px; display:flex; justify-content:space-between; align-items:center; background:#fafafa;';
                 cardBox.innerHTML = `
                     <div>
-                        <strong style="color:var(--primary); font-size: 16px;">${s.name}</strong>
-                        <span style="font-size:12px; color:#888; margin-left:10px;">(Pass: ${s.pass})</span>
+                        <strong style="color:var(--primary); font-size:15px;">${s.name}</strong>
+                        <div style="margin-top:4px;">
+                            <span style="font-size:12px; color:#888;">(TC: <strong>${s.pass}</strong>)</span>
+                            <span style="font-size:11px;font-weight:bold;padding:2px 8px;border-radius:4px;margin-left:6px;color:white;background:${batchBg};">${s.batch}</span>
+                            <span style="font-size:11px;font-weight:bold;padding:2px 8px;border-radius:4px;margin-left:4px;color:white;background:${divBg};">${s.division}</span>
+                        </div>
                     </div>
-                    <button class="clear-btn" onclick="userReset('${s.name}', '${s.pass}')" style="padding:6px 12px; font-size:12px;">Reset</button>
-                `;
+                    <button class="clear-btn" onclick="userReset('${s.name}','${s.pass}')" style="padding:6px 12px;font-size:12px;">Reset</button>`;
                 listDiv.appendChild(cardBox);
             });
         }
@@ -589,24 +736,27 @@
         function filterUsers() { renderUsers(); }
 
         function globalReset() {
-            if (confirm("Reset ALL student accounts?")) {
+            if (confirm('⚠️ Reset ALL student accounts? All progress will be erased.')) {
                 const ts = Date.now();
                 database.ref('account_resets/global').set({ timestamp: ts });
                 database.ref('exam_results').remove();
                 database.ref('student_sessions').remove();
-                alert("Global reset complete.");
+                database.ref('admin_logs').push({ action: 'Global Reset', target: 'All Users', timestamp: new Date().toLocaleString() });
+                alert('Global reset complete.');
             }
         }
 
         async function userReset(studentName, studentPass) {
-            if (confirm("Reset account for " + studentName + "?")) {
+            if (confirm('Reset account for ' + studentName + '? They will be able to retake the exam.')) {
                 const safeName = getSafeName(studentName);
-                database.ref('account_resets/users/' + safeName).set({ timestamp: Date.now() });
-                
-                // Clear locked session
+                const uid = studentName + '_' + studentPass;
+                database.ref('account_resets/users/' + uid).set({ timestamp: Date.now() });
                 database.ref('student_sessions/' + safeName).remove();
-
-                console.log("✅ Reset successful for " + studentName + ". Performance records preserved.");
+                database.ref('exam_results').orderByChild('name').equalTo(studentName).once('value', snap => {
+                    if (snap.val()) Object.keys(snap.val()).forEach(k => database.ref('exam_results/' + k).remove());
+                });
+                database.ref('admin_logs').push({ action: 'User Reset', target: studentName, timestamp: new Date().toLocaleString() });
+                alert('✅ ' + studentName + "'s account reset successfully.");
             }
         }
 
@@ -640,46 +790,157 @@
         }
 
         let selectedQuestions = [];
-        function loadTopicQuestions() {
+        let allLoadedQuestions = [];
+
+        function showToast(message, type="success") {
+            const toast = document.getElementById("toastNotification");
+            toast.innerText = message;
+            toast.className = "toast show " + type;
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        async function loadTopicQuestions() {
+            const batch = document.getElementById('examSession').value; // e.g. "61st EA"
             const sem = document.getElementById('semester').value;
-            const chapter = document.getElementById('mainTopic').value;
+            const chapter = document.getElementById('mainTopic').value; 
             if (!chapter || chapter.includes("Select")) return;
 
-            document.getElementById('currentTopicLabel').innerText = `Select: ${chapter}`;
-            const display = document.getElementById('questionDisplay');
-            display.innerHTML = `<div style="text-align:center; padding:40px;">Loading...</div>`;
+            let batchId = batch.split(' ')[0] + '_batch'; // e.g., '61st_batch'
+            let topicKey = dbMap[chapter] || chapter.toLowerCase().replace(/\s+/g, '');
 
-            database.ref('questions/' + sem + '/' + chapter).once('value', (snapshot) => {
-                const questions = snapshot.val();
+            document.getElementById('currentTopicLabel').innerText = `Select: ${chapter} (${batch})`;
+            const display = document.getElementById('questionDisplay');
+            const actionsDiv = document.getElementById('question-actions');
+            if (actionsDiv) actionsDiv.style.display = 'none';
+            
+            display.innerHTML = `<div style="text-align:center; padding:40px;">
+                <div style="display:inline-block; width:40px; height:40px; border:4px solid #f3f3f3; border-top:4px solid var(--accent); border-radius:50%; animation:spin 1s linear infinite;"></div>
+                <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+                <p style="margin-top:10px; color:#666;">Loading questions from Firestore...</p>
+            </div>`;
+
+            selectedQuestions = [];
+            allLoadedQuestions = [];
+            document.getElementById('selectedCount').innerText = `0 Selected`;
+            const saCb = document.getElementById('selectAllCheckbox');
+            if(saCb) saCb.checked = false;
+
+            try {
+                // To support Firestore, we'll try fetching from 'question_bank/{batchId}/{topicKey}' string template
+                const snapshot = await firestoreDb.collection('question_bank').doc(batchId).collection(topicKey).get();
+                
                 display.innerHTML = "";
-                selectedQuestions = [];
-                if (!questions) {
-                    display.innerHTML = `<p style="color:red; text-align:center;">No questions found.</p>`;
+                
+                if (snapshot.empty) {
+                    display.innerHTML = `<p style="color:red; text-align:center;">No questions found in Firestore for this topic.<br><small>Searched path: question_bank / ${batchId} / ${topicKey}</small></p>`;
                     return;
                 }
-                Object.keys(questions).forEach((key) => {
-                    const q = questions[key];
+
+                if (actionsDiv) actionsDiv.style.display = 'flex';
+
+                snapshot.forEach(doc => {
+                    const q = doc.data();
+                    const key = doc.id;
+                    allLoadedQuestions.push({id: key, ...q});
+                    
                     display.innerHTML += `
-                        <div class="q-card" style="display:flex; justify-content:space-between; border-left:5px solid #27ae60;">
+                        <div class="q-card question-item" data-id="${key}" style="display:flex; justify-content:space-between; border-left:5px solid #27ae60;">
                             <div>
-                                <p><strong>Q:</strong> ${q.question || q.questionText}</p>
-                                <p style="color:#27ae60; font-weight:bold;">✓ ${q.answer || q.correctOption}</p>
+                                <p class="q-text"><strong>Q:</strong> ${q.question || q.questionText || q.q}</p>
+                                <p style="color:#27ae60; font-weight:bold;">✓ ${q.answer || q.correctOption || q.correctAnswer}</p>
                             </div>
-                            <input type="checkbox" onclick="toggleSelection('${key}', this)">
+                            <input type="checkbox" class="q-cb" value="${key}" onclick="toggleSelection('${key}', this)" style="transform: scale(1.5); align-self: center;">
                         </div>`;
                 });
+                showToast("Questions loaded successfully!", "success");
+            } catch (error) {
+                console.error("Firestore error:", error);
+                display.innerHTML = `<p style="color:red; text-align:center;">Error loading from Firestore: ${error.message}</p>`;
+            }
+        }
+
+        function filterQuestions() {
+            const query = document.getElementById('q-search').value.toLowerCase();
+            document.querySelectorAll('.question-item').forEach(item => {
+                const text = item.querySelector('.q-text').innerText.toLowerCase();
+                item.style.display = text.includes(query) ? "flex" : "none";
             });
+        }
+
+        function toggleSelectAll(cb) {
+            const checkboxes = document.querySelectorAll('.question-item .q-cb');
+            selectedQuestions = [];
+            checkboxes.forEach(c => {
+                if (c.closest('.question-item').style.display !== "none") {
+                    c.checked = cb.checked;
+                    if (cb.checked) selectedQuestions.push(c.value);
+                }
+            });
+            document.getElementById('selectedCount').innerText = `${selectedQuestions.length} Selected`;
         }
 
         function toggleSelection(id, cb) {
             if (cb.checked) selectedQuestions.push(id);
             else selectedQuestions = selectedQuestions.filter(i => i !== id);
             document.getElementById('selectedCount').innerText = `${selectedQuestions.length} Selected`;
+            
+            const visibleCbs = Array.from(document.querySelectorAll('.question-item .q-cb')).filter(c => c.closest('.question-item').style.display !== "none");
+            const saCb = document.getElementById('selectAllCheckbox');
+            if(saCb) saCb.checked = visibleCbs.length > 0 && visibleCbs.every(c => c.checked);
         }
 
+        async function saveSelectedToFirestore(type) {
+            if (selectedQuestions.length === 0) {
+                showToast("Please select at least one question first!", "error");
+                return;
+            }
+            
+            const batch = document.getElementById('examSession').value;
+            const chapter = document.getElementById('mainTopic').value; 
+            const selectedQData = allLoadedQuestions.filter(q => selectedQuestions.includes(q.id));
+            
+            const docData = {
+                title: `${type === 'exam' ? 'Exam' : 'Assignment'} - ${chapter}`,
+                type: type,
+                batch: batch,
+                topic: chapter,
+                createdAt: new Date().toISOString(),
+                questions: selectedQData,
+                active: true
+            };
+            
+            try {
+                const collName = type === 'exam' ? 'ActiveExams' : 'ActiveAssignments';
+                const docRef = await firestoreDb.collection(collName).add(docData);
+                
+                // Keep Realtime DB sync
+                database.ref('active_' + type + 's/' + batch.replace(' ', '_')).set({
+                    firestoreId: docRef.id,
+                    topic: chapter,
+                    type: type,
+                    questionCount: selectedQuestions.length,
+                    timestamp: Date.now()
+                });
+
+                showToast(`New ${type} generated successfully!`, "success");
+                
+                selectedQuestions = [];
+                document.getElementById('selectedCount').innerText = `0 Selected`;
+                const saCb = document.getElementById('selectAllCheckbox');
+                if(saCb) saCb.checked = false;
+                document.querySelectorAll('.q-cb').forEach(c => c.checked = false);
+
+            } catch (e) {
+                console.error("Error saving " + type, e);
+                showToast("Failed to save " + type, "error");
+            }
+        }
+
+        function generateExamSet() { saveSelectedToFirestore('exam'); }
+        function assignAsAssignment() { saveSelectedToFirestore('assignment'); }
+
         function generateFromBank() {
-            if (selectedQuestions.length === 0) { alert("Select questions first!"); return; }
-            alert("Exam generated for " + selectedQuestions.length + " questions.");
+            generateExamSet();
         }
     </script>
 </body>
