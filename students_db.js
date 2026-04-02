@@ -33,6 +33,10 @@ const students = [
     { name: "Pramita Gautam Vavhal",        pass: "3340", batch: "61st", division: "EA" },
     { name: "Ruchita Pandurang Farde",      pass: "3271", batch: "61st", division: "EA" },
     { name: "Dimpal Rasal",                 pass: "3321", batch: "61st", division: "EA" },
+    { name: "Tanuja Walimbe",               pass: "3346", batch: "61st", division: "EA" },
+    { name: "Sankit Kahar",                 pass: "3284", batch: "61st", division: "EA" },
+    { name: "Nayan Kondilkar",              pass: "3291", batch: "61st", division: "EA" },
+    { name: "Om Vishe",                     pass: "3342", batch: "61st", division: "EA" },
 
     // --- 61st EB (Division B) ---
     { name: "Hitesh",                      pass: "2685", batch: "61st", division: "EB" },
@@ -65,6 +69,7 @@ const students = [
     { name: "Aryan Anil Shinde",            pass: "3328", batch: "61st", division: "EB" },
     { name: "Nikhil Pradip Jadhav",         pass: "3285", batch: "61st", division: "EB" },
     { name: "Purva Panchal",                pass: "3356", batch: "61st", division: "EB" },
+    { name: "Shivam Thakur",                pass: "3337", batch: "61st", division: "EB" },
 
     // ===================== 62nd BATCH =====================
 
